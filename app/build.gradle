@@ -43,4 +43,5 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 
     implementation project(':taipeiarsdk')
+//    implementation 'com.github.omniguider:TaipeiASDK:1.0.0'
 }

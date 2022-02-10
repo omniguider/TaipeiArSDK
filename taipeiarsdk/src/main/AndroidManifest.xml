@@ -49,6 +49,11 @@
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:screenOrientation="portrait" />
 
+        <activity android:name="com.wikitude.architect.BrowserActivity" />
+        <activity
+            android:name="com.wikitude.tools.activities.MediaPlayerActivity"
+            android:screenOrientation="landscape" >
+        </activity>
     </application>
 
 </manifest>
