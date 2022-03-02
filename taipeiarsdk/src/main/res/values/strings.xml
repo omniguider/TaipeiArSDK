@@ -1,6 +1,9 @@
 <resources>
-    <string name="app_name">taipeiarsdk</string>
+    <string name="app_name">臺北AR</string>
+    <string name="app_name_en">Taipei AR</string>
+    <string name="taipei_ar">臺北AR</string>
 
+    <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyAEbX2Qdl1QeoJcexJAgn6EnJy_ypBWWjc</string>
     <string name="wikitude_license_key">yckS+ZXeS6F6+dT5Q2Yd2/duAbTWHYhSjYjCEVLQ4vjXJXC4zi+nsAZg2dWSKK/oCZqOfqjUlHbonYHJvlvTRVkY9MlARGBVMTQ+WLe4MAD46N14Aicwd1KDWpL9T5b1aI2pc3jZncRjMVziGvTpRpLzt+zo1KxGnDVlxiZrM/hTYWx0ZWRfXzN/VMSMkamJtbV80m48Gy1gXHwkQBq21F7cFh+PvnTARiJiU5IBeBXyCERhFAl25IN4I6RwNzm2WMPEUUfjQvqaGA0weHF8V2ihQcyBNeVYF5LVokRqFKoPJUCaatnAGo8t/u9YVyslwxNdQMpz22AGi4uQWTzAjMssrsNAdKlkLYTCrG6o/bB8Ulm+10C2BZ2K39FaWYMut+83yrWuZuNZd7az3PRw1dkWCKaPupitYQP0kev9YMR69PSxvDNQQZQBUzLBv2TLnygRVqp4DQpMlFXbfY7forzvIkMrfhY5p+wXEyPU3HlWZVEeFSYA1A62pH/hjvXBJlqPPI9btjruSHsQPr/AqJD2Y/Zj7oCa4B8AcwiBHWg+p8ph+EixDLPEI36yw0MrMLRelRITMQwgfhC6wv2z6hLLDstlcFxgxJATr7Gtaei9IBxiKkodAwI1RgNkGh5BO+zbdl1EXOr+LS2L6cMVUs/szVNzgLpb2JqWY2MjHty0+Q860ML/JL0jyJ4dmBotNGi9mBJC9WKi49dLeHLXkpFhpkqEfxQaPYDfEU9vvq4CnBV4EAZMCCuhnO4i92Y5Xg61UcNRylSrVI6AV3EH17CTosdoVTiSFmC/FYC9GoQTpgqiPinjzujmcyVr0NtG+ANYAhWfQYe8HKFhAm7xqJE2SXJXJd3m3kIpHH+WeVg=</string>
     <string name="permissions_denied">The Experience needs the following permissions to enable an AR experience:</string>
     <string name="permission_rationale_text">The AR Experience needs the following permissions to enable an AR experience:</string>
@@ -35,4 +38,13 @@
     <string name="error_dialog_title_text_unknown">發生未預期錯誤</string>
     <string name="error_dialog_text_login_error">請輸入正確的卡號與密碼</string>
     <string name="dialog_message_network_connect_not_good">此處無可供服務流量之網路，請移動至適當區域，檢查連線狀況後再試。</string>
+
+    <string name="ar_guide">AR探索</string>
+    <string name="ar_guide_en">AR Navigation</string>
+    <string name="theme_guide">主題導覽</string>
+    <string name="theme_guide_en">Point of interest</string>
+    <string name="mission">踏點闖關</string>
+    <string name="mission_en">Mission Exploration</string>
+    <string name="pano">360度環景</string>
+    <string name="ar">AR</string>
 </resources>

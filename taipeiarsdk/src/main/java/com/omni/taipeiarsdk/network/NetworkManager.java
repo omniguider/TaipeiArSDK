@@ -56,11 +56,8 @@ public class NetworkManager {
     public static final String NETWORKMANAGER_TAG = NetworkManager.class.getSimpleName();
     public static final String ERROR_MESSAGE_API_TIME_OUT = "Call API timeout";
 
-//    public static final String TY_DOMAIN_NAME = "http://vrar360.dev.utobonus.com/";
-    public static final String TY_DOMAIN_NAME = "https://vr-api.tycg.gov.tw/";
-
-    //    public static final String TY_WEB_DOMAIN = "http://vrar360.utobonus.com/";
-    public static final String TY_WEB_DOMAIN = "https://vr.tycg.gov.tw/";
+    public static final String TPE_DOMAIN_NAME = "https://ar-taipei-test.omniguider.com/";
+    public static final String TPE_WEB_DOMAIN = "https://vr.tycg.gov.tw/";
 
     public static final String API_RESULT_TRUE = "true";
     private final int DEFAULT_TIMEOUT = 30000;
@@ -110,24 +107,9 @@ public class NetworkManager {
     }
 
     public void setNetworkImage(Context context, NetworkImageView networkImageView, String url) {
-
         LruImageCache lruImageCache = LruImageCache.getInstance();
-
         ImageLoader imageLoader = new ImageLoader(getRequestQueue(context), lruImageCache);
 
-        networkImageView.setDefaultImageResId(R.mipmap.logo_icon_small);
-        networkImageView.setErrorImageResId(R.mipmap.slime_dark);
-        networkImageView.setImageUrl(url, imageLoader);
-    }
-
-    public void setNetworkImage(Context context, NetworkImageView networkImageView, String url, @DrawableRes int defaultIconResId) {
-
-        LruImageCache lruImageCache = LruImageCache.getInstance();
-
-        ImageLoader imageLoader = new ImageLoader(getRequestQueue(context), lruImageCache);
-
-        networkImageView.setDefaultImageResId(defaultIconResId);
-        networkImageView.setErrorImageResId(R.mipmap.slime_dark);
         networkImageView.setImageUrl(url, imageLoader);
     }
 
@@ -659,7 +641,7 @@ public class NetworkManager {
 
             mRetrofit = new Retrofit.Builder()
                     .client(okHttpClient)
-                    .baseUrl(TY_DOMAIN_NAME)
+                    .baseUrl(TPE_DOMAIN_NAME)
                     .callbackExecutor(Executors.newSingleThreadExecutor())
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();

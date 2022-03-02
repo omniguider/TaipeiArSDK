@@ -35,27 +35,94 @@ function Marker(poiData) {
     });
 
     // create an AR.Label for the marker's title 
-    this.titleLabel = new AR.Label(poiData.title.trunc(13), 0.5, {
+    this.titleLabel = new AR.Label(poiData.title.trunc(12), 0.5, {
         zOrder: 1,
         translate: {
-            y: 0.25
+            y: 0.3,
+            x: 0.5
         },
         style: {
-            textColor: '#FFFFFF',
+            textColor: '#333333',
             fontStyle: AR.CONST.FONT_STYLE.BOLD
         }
     });
 
     // create an AR.Label for the marker's description
-    this.descriptionLabel = new AR.Label(poiData.description.trunc(10), 0.5, {
+    this.descriptionLabel = new AR.Label(poiData.description.trunc(8), 0.5, {
         zOrder: 1,
         translate: {
-            y: -0.25
+            y: -0.2,
+            x: 0.2
         },
         style: {
-            textColor: '#FFFFFF'
+            textColor: '#6d747c'
         }
     });
+
+    this.titleSelectLabel = new AR.Label(poiData.title.trunc(12), 0.5, {
+         zOrder: 1,
+         translate: {
+             y: 0.3,
+             x: 0.5
+         },
+         style: {
+             textColor: '#ffffff',
+             fontStyle: AR.CONST.FONT_STYLE.BOLD
+         }
+     });
+
+     this.descriptionSelectLabel = new AR.Label(poiData.description.trunc(8), 0.5, {
+         zOrder: 1,
+         translate: {
+             y: -0.2,
+             x: 0.2
+         },
+         style: {
+             textColor: '#ffffff'
+         }
+     });
+
+    if (poiData.category == "古蹟"){
+        this.icon = new AR.ImageDrawable(World.markerDrawable_icon_monument, 0.8, {
+            zOrder: 1,
+            translate: {
+                x: -1.8,
+                y: 0.1
+            }
+        });
+    } else if (poiData.category == "藝文"){
+        this.icon = new AR.ImageDrawable(World.markerDrawable_icon_art, 0.8, {
+            zOrder: 1,
+            translate: {
+                x: -1.8,
+                y: 0.1
+            }
+        });
+    } else if (poiData.category == "運動"){
+        this.icon = new AR.ImageDrawable(World.markerDrawable_icon_sport, 0.8, {
+            zOrder: 1,
+            translate: {
+                x: -1.8,
+                y: 0.1
+            }
+        });
+    } else if (poiData.category == "展館"){
+        this.icon = new AR.ImageDrawable(World.markerDrawable_icon_exhibition, 0.8, {
+            zOrder: 1,
+            translate: {
+                x: -1.8,
+                y: 0.1
+            }
+        });
+    } else{
+        this.icon = new AR.ImageDrawable(World.markerDrawable_icon_ar, 0.5, {
+            zOrder: 1,
+            translate: {
+                x: -1.8,
+                y: 0.1
+            }
+        });
+    }
 
     /*
         Create an AR.ImageDrawable using the AR.ImageResource for the direction indicator which was created in the World. Set options regarding the offset and anchor of the image so that it will be displayed correctly on the edge of the screen.
@@ -65,19 +132,19 @@ function Marker(poiData) {
         verticalAnchor: AR.CONST.VERTICAL_ANCHOR.TOP,
     });
 
-    this.radarCircle = new AR.Circle(0.03, {
+    this.radarCircle = new AR.Circle(0.08, {
         horizontalAnchor: AR.CONST.HORIZONTAL_ANCHOR.CENTER,
         opacity: 0.8,
         style: {
-            fillColor: "#ffffff"
+            fillColor: "#4bedf8"
         }
     });
 
-    this.radarCircleSelected = new AR.Circle(0.05, {
+    this.radarCircleSelected = new AR.Circle(0.08, {
         horizontalAnchor: AR.CONST.HORIZONTAL_ANCHOR.CENTER,
         opacity: 0.8,
         style: {
-            fillColor: "#0066ff"
+            fillColor: "#f89696"
         }
     });
 
@@ -92,7 +159,7 @@ function Marker(poiData) {
     */
     this.markerObject = new AR.GeoObject(markerLocation, {
         drawables: {
-            cam: [this.markerDrawable_idle, this.markerDrawable_selected, this.titleLabel, this.descriptionLabel],
+            cam: [this.markerDrawable_idle, this.markerDrawable_selected, this.titleLabel, this.descriptionLabel, this.titleSelectLabel, this.descriptionSelectLabel, this.icon],
             indicator: this.directionIndicatorDrawable,
             radar: this.radardrawables
         }
@@ -149,36 +216,36 @@ Marker.prototype.setSelected = function(marker) {
         var showSelectedDrawableAnimation = new AR.PropertyAnimation(marker.markerDrawable_selected, "opacity", null, 1.0, kMarker_AnimationDuration_ChangeDrawable);
 
         // create AR.PropertyAnimation that animates the scaling of the idle-state-drawable to 1.2
-        var idleDrawableResizeAnimationX = new AR.PropertyAnimation(marker.markerDrawable_idle, 'scale.x', null, 1.2, kMarker_AnimationDuration_Resize, new AR.EasingCurve(AR.CONST.EASING_CURVE_TYPE.EASE_OUT_ELASTIC, {
+        var idleDrawableResizeAnimationX = new AR.PropertyAnimation(marker.markerDrawable_idle, 'scale.x', null, 1.0, kMarker_AnimationDuration_Resize, new AR.EasingCurve(AR.CONST.EASING_CURVE_TYPE.EASE_OUT_ELASTIC, {
             amplitude: 2.0
         }));
         // create AR.PropertyAnimation that animates the scaling of the selected-state-drawable to 1.2
-        var selectedDrawableResizeAnimationX = new AR.PropertyAnimation(marker.markerDrawable_selected, 'scale.x', null, 1.2, kMarker_AnimationDuration_Resize, new AR.EasingCurve(AR.CONST.EASING_CURVE_TYPE.EASE_OUT_ELASTIC, {
+        var selectedDrawableResizeAnimationX = new AR.PropertyAnimation(marker.markerDrawable_selected, 'scale.x', null, 1.0, kMarker_AnimationDuration_Resize, new AR.EasingCurve(AR.CONST.EASING_CURVE_TYPE.EASE_OUT_ELASTIC, {
             amplitude: 2.0
         }));
         // create AR.PropertyAnimation that animates the scaling of the title label to 1.2
-        var titleLabelResizeAnimationX = new AR.PropertyAnimation(marker.titleLabel, 'scale.x', null, 1.2, kMarker_AnimationDuration_Resize, new AR.EasingCurve(AR.CONST.EASING_CURVE_TYPE.EASE_OUT_ELASTIC, {
+        var titleLabelResizeAnimationX = new AR.PropertyAnimation(marker.titleLabel, 'scale.x', null, 1.0, kMarker_AnimationDuration_Resize, new AR.EasingCurve(AR.CONST.EASING_CURVE_TYPE.EASE_OUT_ELASTIC, {
             amplitude: 2.0
         }));
         // create AR.PropertyAnimation that animates the scaling of the description label to 1.2
-        var descriptionLabelResizeAnimationX = new AR.PropertyAnimation(marker.descriptionLabel, 'scale.x', null, 1.2, kMarker_AnimationDuration_Resize, new AR.EasingCurve(AR.CONST.EASING_CURVE_TYPE.EASE_OUT_ELASTIC, {
+        var descriptionLabelResizeAnimationX = new AR.PropertyAnimation(marker.descriptionLabel, 'scale.x', null, 1.0, kMarker_AnimationDuration_Resize, new AR.EasingCurve(AR.CONST.EASING_CURVE_TYPE.EASE_OUT_ELASTIC, {
             amplitude: 2.0
         }));
 
         // create AR.PropertyAnimation that animates the scaling of the idle-state-drawable to 1.2
-        var idleDrawableResizeAnimationY = new AR.PropertyAnimation(marker.markerDrawable_idle, 'scale.y', null, 1.2, kMarker_AnimationDuration_Resize, new AR.EasingCurve(AR.CONST.EASING_CURVE_TYPE.EASE_OUT_ELASTIC, {
+        var idleDrawableResizeAnimationY = new AR.PropertyAnimation(marker.markerDrawable_idle, 'scale.y', null, 1.0, kMarker_AnimationDuration_Resize, new AR.EasingCurve(AR.CONST.EASING_CURVE_TYPE.EASE_OUT_ELASTIC, {
             amplitude: 2.0
         }));
         // create AR.PropertyAnimation that animates the scaling of the selected-state-drawable to 1.2
-        var selectedDrawableResizeAnimationY = new AR.PropertyAnimation(marker.markerDrawable_selected, 'scale.y', null, 1.2, kMarker_AnimationDuration_Resize, new AR.EasingCurve(AR.CONST.EASING_CURVE_TYPE.EASE_OUT_ELASTIC, {
+        var selectedDrawableResizeAnimationY = new AR.PropertyAnimation(marker.markerDrawable_selected, 'scale.y', null, 1.0, kMarker_AnimationDuration_Resize, new AR.EasingCurve(AR.CONST.EASING_CURVE_TYPE.EASE_OUT_ELASTIC, {
             amplitude: 2.0
         }));
         // create AR.PropertyAnimation that animates the scaling of the title label to 1.2
-        var titleLabelResizeAnimationY = new AR.PropertyAnimation(marker.titleLabel, 'scale.y', null, 1.2, kMarker_AnimationDuration_Resize, new AR.EasingCurve(AR.CONST.EASING_CURVE_TYPE.EASE_OUT_ELASTIC, {
+        var titleLabelResizeAnimationY = new AR.PropertyAnimation(marker.titleLabel, 'scale.y', null, 1.0, kMarker_AnimationDuration_Resize, new AR.EasingCurve(AR.CONST.EASING_CURVE_TYPE.EASE_OUT_ELASTIC, {
             amplitude: 2.0
         }));
         // create AR.PropertyAnimation that animates the scaling of the description label to 1.2
-        var descriptionLabelResizeAnimationY = new AR.PropertyAnimation(marker.descriptionLabel, 'scale.y', null, 1.2, kMarker_AnimationDuration_Resize, new AR.EasingCurve(AR.CONST.EASING_CURVE_TYPE.EASE_OUT_ELASTIC, {
+        var descriptionLabelResizeAnimationY = new AR.PropertyAnimation(marker.descriptionLabel, 'scale.y', null, 1.0, kMarker_AnimationDuration_Resize, new AR.EasingCurve(AR.CONST.EASING_CURVE_TYPE.EASE_OUT_ELASTIC, {
             amplitude: 2.0
         }));
 
@@ -192,6 +259,11 @@ Marker.prototype.setSelected = function(marker) {
     marker.markerDrawable_idle.onClick = null;
     // sets the click trigger function for the selected state marker
     marker.markerDrawable_selected.onClick = Marker.prototype.getOnClickTrigger(marker);
+
+    marker.titleSelectLabel.enabled = true;
+    marker.titleLabel.enabled = false;
+    marker.descriptionSelectLabel.enabled = true;
+    marker.descriptionLabel.enabled = false;
 
     // enables the direction indicator drawable for the current marker
     marker.directionIndicatorDrawable.enabled = true;
@@ -257,6 +329,11 @@ Marker.prototype.setDeselected = function(marker) {
     marker.markerDrawable_idle.onClick = Marker.prototype.getOnClickTrigger(marker);
     // removes function that is set on the onClick trigger of the selected-state marker
     marker.markerDrawable_selected.onClick = null;
+
+    marker.titleSelectLabel.enabled = false;
+    marker.titleLabel.enabled = true;
+    marker.descriptionSelectLabel.enabled = false;
+    marker.descriptionLabel.enabled = true;
 
     // disables the direction indicator drawable for the current marker
     marker.directionIndicatorDrawable.enabled = false;

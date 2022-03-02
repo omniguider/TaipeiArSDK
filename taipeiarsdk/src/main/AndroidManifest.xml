@@ -5,8 +5,12 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_GPS" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <uses-feature
         android:name="android.hardware.camera"
@@ -21,6 +25,10 @@
             android:name="org.apache.http.legacy"
             android:required="false" />
 
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="@string/google_maps_key" />
+
         <activity
             android:name=".TaipeiArSDKActivity"
             android:exported="true"
@@ -34,26 +42,25 @@
 
         <activity
             android:name=".SimpleArActivity"
-            android:theme="@style/TaipeiArSDKTheme"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            android:theme="@style/TaipeiArSDKTheme" />
         <activity
             android:name=".ArchitectViewExtensionActivity"
-            android:theme="@style/TaipeiArSDKTheme"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            android:theme="@style/TaipeiArSDKTheme" />
 
         <activity
             android:name=".WebViewActivity"
-            android:theme="@style/TaipeiArSDKTheme"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            android:theme="@style/TaipeiArSDKTheme" />
 
         <activity android:name="com.wikitude.architect.BrowserActivity" />
         <activity
             android:name="com.wikitude.tools.activities.MediaPlayerActivity"
-            android:screenOrientation="landscape" >
-        </activity>
+            android:screenOrientation="landscape"></activity>
     </application>
 
 </manifest>

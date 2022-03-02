@@ -28,7 +28,7 @@ var World = {
 	showPlaceNr: 0,
 
 	locationUpdateCounter: 0,
-	updatePlacemarkDistancesEveryXLocationUpdates: 10,
+	updatePlacemarkDistancesEveryXLocationUpdates: 50,
 
 	 POIData: [],
 
@@ -36,6 +36,7 @@ var World = {
 
 	// called to inject new POI data
 	loadPoisFromJsonData: function loadPoisFromJsonDataFn(poiData) {
+	    console.info('loadPoisFromJsonData');
         World.POIData = poiData;
         console.info('name: ' + poiData[0].name);
 
@@ -49,7 +50,7 @@ var World = {
          AR.context.destroyAll();
 
 		// show radar & set click-listener
-//		PoiRadar.show();
+		PoiRadar.show();
 		$('#radarContainer').unbind('click');
 //		$("#radarContainer").click(PoiRadar.clickedRadar);
 
@@ -60,6 +61,11 @@ var World = {
 		World.markerDrawable_idle = new AR.ImageResource("assets/ar_bg_unselected.png");
 		World.markerDrawable_selected = new AR.ImageResource("assets/ar_bg_selected.png");
 		World.markerDrawable_directionIndicator = new AR.ImageResource("assets/indi.png");
+		World.markerDrawable_icon_ar = new AR.ImageResource("assets/ar.png");
+		World.markerDrawable_icon_art = new AR.ImageResource("assets/art.png");
+		World.markerDrawable_icon_exhibition = new AR.ImageResource("assets/exhibition.png");
+		World.markerDrawable_icon_monument = new AR.ImageResource("assets/monument.png");
+		World.markerDrawable_icon_sport = new AR.ImageResource("assets/sport.png");
 
 		// loop through POI-information and create an AR.GeoObject (=Marker) per POI
 //		for (var currentPlaceNr = 0; currentPlaceNr < poiData.length; currentPlaceNr++) {
@@ -147,10 +153,10 @@ var World = {
              var distance = location.distanceToUser();
 
              //只顯示1公里內POI
-             if (distance > 1000 && World.POIData[index].selected == "false")
-             {
-                 continue;
-             }
+//             if (distance > 1000 && World.POIData[index].selected == "false")
+//             {
+//                 continue;
+//             }
 
              //設定高度
 //             var altitude = 5*index + 5;
@@ -180,8 +186,8 @@ var World = {
 
              //距離文字
              var distanceStr = (distance > 999) ?
-             (distance / 1000).toFixed(2) + "公里" :
-             (Math.round(distance)).toString() + "公尺"
+             (distance / 1000).toFixed(2) + " km" :
+             (Math.round(distance)).toString() + " m"
 
              //POI資訊
              var singlePoi =
@@ -190,15 +196,16 @@ var World = {
                  "latitude": parseFloat(World.POIData[index].latitude),
                  "longitude": parseFloat(World.POIData[index].longitude),
                  "altitude": altitude,
-                 "title": World.POIData[index].name ,
-                 "description": distanceStr
+                 "title": World.POIData[index].name,
+                 "description": distanceStr,
+                 "category": World.POIData[index].category
              };
 
               World.addMarker = new Marker(singlePoi);
 
               //marker尺寸
-              World.addMarker.markerDrawable_idle.height = 1;
-              World.addMarker.markerDrawable_selected.height = 1;
+              World.addMarker.markerDrawable_idle.height = 1.8;
+              World.addMarker.markerDrawable_selected.height = 1.8;
 
               //選擇或未選顏色-紅/綠
               if (World.POIData[index].selected == "true")
@@ -208,6 +215,7 @@ var World = {
               }
               else
               {
+                  World.addMarker.setDeselected(World.addMarker);
                   World.markerList.push(World.addMarker);
               }
          }
@@ -289,6 +297,21 @@ var World = {
         // highlight current one
         marker.setSelected(marker);
         World.currentMarker = marker;
+
+        for (var index = 0; index < World.POIData.length ; index++){
+            if (World.POIData[index].name == marker.poiData.title){
+                World.POIData[index].selected = "true"
+            } else{
+                World.POIData[index].selected = "false"
+            }
+        }
+
+        var targetId = marker.poiData.id;
+        var markerSelectedJSON = {
+            action: "showPOIInfo",
+            id: targetId,
+        };
+        AR.platform.sendJSONObject(markerSelectedJSON);
 
 //		// update panel values
 //		$("#poi-detail-title").html(marker.poiData.title);

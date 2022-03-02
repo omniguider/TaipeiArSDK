@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <dimen name="text_size_action_bar">20sp</dimen>
+    <dimen name="text_size_action_bar">18sp</dimen>
     <dimen name="text_size_small">10sp</dimen>
     <dimen name="text_size_normal">14sp</dimen>
     <dimen name="text_size_big">16sp</dimen>

@@ -7,6 +7,7 @@ import android.util.Log;
 import com.android.volley.Request;
 import com.omni.taipeiarsdk.model.GetWtcFeedback;
 import com.omni.taipeiarsdk.model.UserImageFeedback;
+import com.omni.taipeiarsdk.model.tpe_location.IndexFeedback;
 import com.omni.taipeiarsdk.pano.ArPattenFeedback;
 import com.omni.taipeiarsdk.pano.ArPattensFeedback;
 
@@ -49,7 +50,7 @@ public class TpeArApi {
     }
 
     public void getPattenFile(Context context, NetworkManager.NetworkManagerListener<GetWtcFeedback> listener) {
-        String url = NetworkManager.TY_DOMAIN_NAME + "api/get_wtc";
+        String url = NetworkManager.TPE_DOMAIN_NAME + "api/get_wtc";
         Map<String, String> params = new HashMap<>();
 
         NetworkManager.getInstance().addJsonRequest(context, Request.Method.GET, url, params, GetWtcFeedback.class, TIMEOUT, listener);
@@ -58,7 +59,7 @@ public class TpeArApi {
     public void getPatternsContent(Context context, String pattern_id, String user_id, NetworkManager.NetworkManagerListener<ArPattensFeedback> listener) {
         //DialogTools.getInstance().showProgress(context);
 
-        String url = NetworkManager.TY_DOMAIN_NAME + "api/get_patterns_content";
+        String url = NetworkManager.TPE_DOMAIN_NAME + "api/get_patterns_content";
         Map<String, String> params = new HashMap<>();
         params.put("pattern_id", pattern_id);
         params.put("user_id", user_id);
@@ -85,6 +86,14 @@ public class TpeArApi {
         call = getTyService().uploadUserImage(body, currentTimestamp_rb, mac_rb);
 
         NetworkManager.getInstance().addPostRequest(activity, call, UserImageFeedback.class, listener);
+    }
+
+    public void getSpecificPoi(Context context, String type, NetworkManager.NetworkManagerListener<IndexFeedback> listener) {
+        String url = NetworkManager.TPE_DOMAIN_NAME + "api/get_index";
+        Map<String, String> params = new HashMap<>();
+        params.put("type", type);
+
+        NetworkManager.getInstance().addJsonRequest(context, Request.Method.GET, url, params, IndexFeedback.class, TIMEOUT, listener);
     }
 
 }

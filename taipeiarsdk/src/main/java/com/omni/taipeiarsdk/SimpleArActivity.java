@@ -1,9 +1,17 @@
 package com.omni.taipeiarsdk;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.Color;
+import android.hardware.GeomagneticField;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Environment;
@@ -32,13 +40,28 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.content.ContextCompat;
 
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.NetworkImageView;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.material.button.MaterialButton;
 import com.omni.taipeiarsdk.model.ArScanInfo;
 import com.omni.taipeiarsdk.model.OmniEvent;
 import com.omni.taipeiarsdk.model.UserImageFeedback;
+import com.omni.taipeiarsdk.model.tpe_location.IndexFeedback;
+import com.omni.taipeiarsdk.model.tpe_location.IndexPoi;
 import com.omni.taipeiarsdk.network.NetworkManager;
 import com.omni.taipeiarsdk.network.TpeArApi;
 import com.omni.taipeiarsdk.pano.ArPattensFeedback;
@@ -54,6 +77,7 @@ import com.wikitude.common.permission.PermissionManager;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -71,7 +95,7 @@ import static com.wikitude.architect.ArchitectView.CaptureScreenCallback.CAPTURE
  * This Activity needs Manifest.permission.CAMERA permissions because the
  * ArchitectView will try to start the camera.
  */
-public class SimpleArActivity extends AppCompatActivity {
+public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     public static final String INTENT_EXTRAS_KEY_SAMPLE = "sampleData";
     private static final String TAG = SimpleArActivity.class.getSimpleName();
@@ -136,19 +160,48 @@ public class SimpleArActivity extends AppCompatActivity {
     private TextView ar_img_support_btn_tv;
 
     private EventBus mEventBus;
+    private SupportMapFragment mMapFragment;
     private Location mLastLocation;
+    private boolean mIsMapInited = false;
+    private GoogleMap mMap;
+    private Marker mUserMarker;
+    private Circle mUserAccuracyCircle;
+    private Polyline mPolyline = null;
     private boolean autoCamera = true;
+    private ImageView position;
 
+    private SensorManager mSensorManager;
     private Handler mHeadingHandler;
+    private HandlerThread mHeadingHandlerThread;
     boolean initHeadingHandler = false;
     private float[] mRotationMatrix = new float[16];
+    private float azimuth;
+    private double heading;
+    private float mDeclination;
+    private String currentHint;
     private ArPattensFeedback arPattensFeedback;
     private ShareGridAdapter adapter;
     private GridView gridView;
+    private String selectPOIId;
+    private IndexFeedback mIndexFeedback;
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(OmniEvent event) {
         switch (event.getType()) {
+            case OmniEvent.TYPE_USER_AR_LOCATION:
+                mLastLocation = (Location) event.getObj();
+
+                GeomagneticField field = new GeomagneticField(
+                        (float) mLastLocation.getLatitude(),
+                        (float) mLastLocation.getLongitude(),
+                        (float) mLastLocation.getAltitude(),
+                        System.currentTimeMillis()
+                );
+                // getDeclination returns degrees
+                mDeclination = field.getDeclination();
+
+                showUserPosition();
+                break;
             case OmniEvent.TYPE_USER_AR_INTERACTIVE_TEXT:
                 runOnUiThread(new Runnable() {
                     @Override
@@ -208,6 +261,96 @@ public class SimpleArActivity extends AppCompatActivity {
     private SVCGestureListener mGestureListener = new SVCGestureListener();
     private MyOnTouchListener myOnTouchListener;
 
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
+        mMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
+        mMap.getUiSettings().setZoomControlsEnabled(false);
+        mMap.getUiSettings().setMapToolbarEnabled(false);
+        mMap.getUiSettings().setCompassEnabled(true);
+        mMap.getUiSettings().setZoomGesturesEnabled(true);
+
+        TpeArApi.getInstance().getSpecificPoi(this, "",
+                new NetworkManager.NetworkManagerListener<IndexFeedback>() {
+                    @Override
+                    public void onSucceed(IndexFeedback feedback) {
+                        mIndexFeedback = feedback;
+                        addPOIMarkers(feedback.getData().getPoi());
+                    }
+
+                    @Override
+                    public void onFail(VolleyError error, boolean shouldRetry) {
+                    }
+                });
+
+        LatLng current = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+        addUserMarker(current, mLastLocation);
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()),
+                TaipeiArSDKText.MAP_MIN_ZOOM_LEVEL));
+    }
+
+    private void addPOIMarkers(IndexPoi[] poiData) {
+        for (IndexPoi indexPoi : poiData) {
+            mMap.addMarker(new MarkerOptions()
+                    .flat(false)
+                    .title(indexPoi.getName())
+                    .icon(BitmapDescriptorFactory.fromResource(R.mipmap.poi_marker))
+                    .position(new LatLng(Double.parseDouble(indexPoi.getLat()),
+                            Double.parseDouble(indexPoi.getLng())))
+                    .zIndex(TaipeiArSDKText.MARKER_Z_INDEX));
+        }
+    }
+
+    private void showUserPosition() {
+        if (!mIsMapInited) {
+            mIsMapInited = true;
+            mMapFragment.getMapAsync(this);
+        }
+        LatLng current = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+        addUserMarker(current, mLastLocation);
+    }
+
+    private void addUserMarker(LatLng position, Location location) {
+        if (mMap == null) {
+            return;
+        }
+        Log.e("LOG", "azimuth" + azimuth);
+        if (mUserMarker == null) {
+            mUserMarker = mMap.addMarker(new MarkerOptions()
+                    .flat(true)
+                    .rotation(location.getBearing())
+                    .icon(BitmapDescriptorFactory.fromResource(R.mipmap.location))
+                    .anchor(0.5f, 0.5f)
+                    .position(position)
+                    .zIndex(TaipeiArSDKText.MARKER_Z_INDEX));
+
+            mUserAccuracyCircle = mMap.addCircle(new CircleOptions()
+                    .center(position)
+                    .radius(location.getAccuracy() / 2)
+                    .strokeColor(ContextCompat.getColor(this, R.color.blue_41))
+                    .strokeWidth(5)
+                    .zIndex(TaipeiArSDKText.MARKER_Z_INDEX));
+        } else {
+            mUserMarker.setPosition(position);
+            mUserMarker.setRotation(azimuth);
+            mUserAccuracyCircle.setCenter(position);
+            mUserAccuracyCircle.setRadius(location.getAccuracy() / 2);
+        }
+
+        CameraPosition cameraPosition = new CameraPosition.Builder()
+                .target(position)
+                .zoom(TaipeiArSDKText.MAP_MIN_ZOOM_LEVEL)
+                .bearing(azimuth)
+                .build();
+        if (autoCamera) {
+            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+        }
+
+//        mUserMarker.setVisible(false);
+        mUserAccuracyCircle.setVisible(false);
+    }
+
     public interface MyOnTouchListener {
         public boolean onTouch(MotionEvent ev);
     }
@@ -251,7 +394,7 @@ public class SimpleArActivity extends AppCompatActivity {
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
             if (autoCamera) {
                 autoCamera = false;
-                mTimeHandler.postDelayed(mTimeRunner, 3000);
+//                mTimeHandler.postDelayed(mTimeRunner, 3000);
             }
             return false;
         }
@@ -287,6 +430,10 @@ public class SimpleArActivity extends AppCompatActivity {
 
         registerEventBus();
         setContentView(R.layout.activity_simple_ar);
+
+        mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        Sensor sensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
+        mSensorManager.registerListener(mSensorEventListener, sensor, TaipeiArSDKText.ROTATION_SENSOR_RATE, mHeadingHandler);
 
         mGestureDetector = new GestureDetector(this, mGestureListener);
         mGestureDetector.setIsLongpressEnabled(true);
@@ -357,7 +504,7 @@ public class SimpleArActivity extends AppCompatActivity {
             public void onJSONObjectReceived(JSONObject jsonObject) {
                 try {
                     final String info = jsonObject.getString("action");
-                    Log.e("LOG","info"+info);
+                    Log.e("LOG", "info" + info);
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -391,6 +538,15 @@ public class SimpleArActivity extends AppCompatActivity {
 //                                case "showMissionARRecognized":
 //                                    showMissionARRecognized();
 //                                    break;
+                                case "showPOIInfo":
+                                    try {
+                                        selectPOIId = jsonObject.getString("id");
+                                        showPOIInfo(selectPOIId);
+                                        Log.e("LOG", "onJSONObjectReceived: " + selectPOIId);
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
+                                    break;
                             }
                         }
                     });
@@ -429,14 +585,28 @@ public class SimpleArActivity extends AppCompatActivity {
         gridView = findViewById(R.id.activity_simple_ar_pattern_gv);
         ar_img_btn_tv = findViewById(R.id.activity_simple_ar_img_btn);
         ar_img_support_btn_tv = findViewById(R.id.activity_simple_ar_img_support_btn);
+        position = findViewById(R.id.activity_simple_position);
 
         back_fl.setOnClickListener(mOnClickListener);
         intro.setOnClickListener(mOnClickListener);
 
+        mMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.activity_simple_ar_map);
         if (!arExperience.contains("10_BrowsingPois_2_AddingRadar")) {
+            mMapFragment.getView().setVisibility(View.GONE);
+            position.setVisibility(View.GONE);
             intro.setVisibility(View.GONE);
             title.setText("AR");
         }
+
+        position.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                autoCamera = true;
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                        new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()),
+                        TaipeiArSDKText.MAP_MIN_ZOOM_LEVEL));
+            }
+        });
 
         interactive_url.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -526,6 +696,8 @@ public class SimpleArActivity extends AppCompatActivity {
         if (mTimeHandler != null && mTimeRunner != null) {
             mTimeHandler.removeCallbacks(mTimeRunner);
         }
+
+        mSensorManager.unregisterListener(mSensorEventListener);
     }
 
     public void showToolButtons() {
@@ -588,6 +760,35 @@ public class SimpleArActivity extends AppCompatActivity {
         focus_hint4.setAlpha(0f);
         mask_top.setVisibility(View.GONE);
         mask_bottom.setVisibility(View.GONE);
+    }
+
+    public void showPOIInfo(String id) {
+        IndexPoi indexPoi = null;
+        for (IndexPoi poi : mIndexFeedback.getData().getPoi()) {
+            if (poi.getId().equals(id)) {
+                indexPoi = poi;
+                break;
+            }
+        }
+
+        View view = LayoutInflater.from(this).inflate(R.layout.dialog_poi_info, null, false);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this).setView(view);
+        final AlertDialog dialog = builder.create();
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        dialog.show();
+
+        String url = indexPoi.getImage();
+        NetworkManager.getInstance().setNetworkImage(this,
+                ((NetworkImageView) view.findViewById(R.id.dialog_poi_info_img)),
+                url.replace("http","https"));
+        ((TextView) view.findViewById(R.id.dialog_poi_info_title)).setText(indexPoi.getName());
+        ((TextView) view.findViewById(R.id.dialog_poi_info_desc)).setText(indexPoi.getDesc());
+        view.findViewById(R.id.dialog_poi_info_close).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
     }
 
     private View.OnClickListener mOnClickListener = new View.OnClickListener() {
@@ -745,6 +946,34 @@ public class SimpleArActivity extends AppCompatActivity {
                 move_3d_model.setOnCheckedChangeListener(this);
                 architectView.callJavascript("World.modeChange();");
             }
+        }
+    };
+
+    private int lastDegree = 0;
+    private SensorEventListener mSensorEventListener = new SensorEventListener() {
+        @Override
+        public void onSensorChanged(final SensorEvent event) {
+            if (event.sensor.getType() == Sensor.TYPE_ROTATION_VECTOR) {
+                SensorManager.getRotationMatrixFromVector(
+                        mRotationMatrix, event.values);
+                float[] orientation = new float[4];
+                final float[] orientationAngles = new float[3];
+                SensorManager.getOrientation(mRotationMatrix, orientationAngles);
+                azimuth = (int) (((((Math.toDegrees(SensorManager.getOrientation(mRotationMatrix, orientation)[0]) + 360) % 360) -
+                        (Math.toDegrees(SensorManager.getOrientation(mRotationMatrix, orientation)[2]))) + 360) % 360) + mDeclination;
+                azimuth = (azimuth + 360) % 360;
+                if (mLastLocation == null)
+                    return;
+                mLastLocation.setBearing(azimuth);
+                if ((int) azimuth != lastDegree) {
+                    lastDegree = (int) azimuth;
+                }
+            }
+        }
+
+        @Override
+        public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
         }
     };
 
