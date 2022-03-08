@@ -1,4 +1,4 @@
-package com.omni.taipeiarsdkdemo
+package gov.taipei.pass
 
 import android.content.Intent
 import android.os.Bundle

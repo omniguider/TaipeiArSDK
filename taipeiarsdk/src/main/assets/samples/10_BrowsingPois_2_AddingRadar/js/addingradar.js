@@ -26,13 +26,12 @@ var World = {
 	currentMarker: null,
 	addMarker: null,
 	showPlaceNr: 0,
+    model: null,
 
 	locationUpdateCounter: 0,
-	updatePlacemarkDistancesEveryXLocationUpdates: 50,
+	updatePlacemarkDistancesEveryXLocationUpdates: 100,
 
-	 POIData: [],
-
-
+	POIData: [],
 
 	// called to inject new POI data
 	loadPoisFromJsonData: function loadPoisFromJsonDataFn(poiData) {
@@ -163,19 +162,19 @@ var World = {
             var altitude;
             if (distance > 0)
             {
-               altitude =  10*World.showPlaceNr +800;
+               altitude =  10*World.showPlaceNr +250;
             }
             if (distance > 50)
             {
-               altitude =  30*World.showPlaceNr +900;
+               altitude =  30*World.showPlaceNr +300;
             }
             if (distance > 100)
             {
-               altitude =  60*World.showPlaceNr +900;
+               altitude =  60*World.showPlaceNr +400;
             }
             if (distance > 250)
             {
-               altitude =  90*World.showPlaceNr +900;
+               altitude =  90*World.showPlaceNr +700;
             }
             if (distance > 500)
             {
@@ -282,6 +281,40 @@ var World = {
         /* Helper used to update placemark information every now and then (e.g. every 10 location upadtes fired). */
         World.locationUpdateCounter = (++World.locationUpdateCounter % World.updatePlacemarkDistancesEveryXLocationUpdates);
 	},
+
+	createModelAtLocation: function createModelAtLocationFn(lat, lng, size, altitude, rotateY, url) {
+        console.info('createModelAtLocation');
+        var location = new AR.GeoLocation(lat, lng);
+
+        if(World.model){
+            if(!World.model.destroyed){
+                World.model.destroy();
+            }
+            World.model = null;
+        }
+        World.model = new AR.Model(url, {
+            onLoaded: this.worldLoaded,
+            onError: World.onError,
+            scale: {
+                x: size,
+                y: size,
+                z: size
+            },
+            rotate: {
+                y: rotateY
+            },
+        });
+
+        var modelAnimation = new AR.ModelAnimation(World.model, "Animation_00");
+        modelAnimation.start(500);
+
+        /* Putting it all together the location and 3D model is added to an AR.GeoObject. */
+        this.geoObject = new AR.GeoObject(location, {
+            drawables: {
+                cam: [World.model],
+            }
+        });
+    },
 
 	// fired when user pressed maker in cam
 	onMarkerSelected: function onMarkerSelectedFn(marker) {

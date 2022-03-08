@@ -1,10 +1,10 @@
 <resources>
     <string name="app_name">臺北AR</string>
     <string name="app_name_en">Taipei AR</string>
-    <string name="taipei_ar">臺北AR</string>
+    <string name="taipei_ar">智慧城市展AR體驗</string>
 
     <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyAEbX2Qdl1QeoJcexJAgn6EnJy_ypBWWjc</string>
-    <string name="wikitude_license_key">yckS+ZXeS6F6+dT5Q2Yd2/duAbTWHYhSjYjCEVLQ4vjXJXC4zi+nsAZg2dWSKK/oCZqOfqjUlHbonYHJvlvTRVkY9MlARGBVMTQ+WLe4MAD46N14Aicwd1KDWpL9T5b1aI2pc3jZncRjMVziGvTpRpLzt+zo1KxGnDVlxiZrM/hTYWx0ZWRfXzN/VMSMkamJtbV80m48Gy1gXHwkQBq21F7cFh+PvnTARiJiU5IBeBXyCERhFAl25IN4I6RwNzm2WMPEUUfjQvqaGA0weHF8V2ihQcyBNeVYF5LVokRqFKoPJUCaatnAGo8t/u9YVyslwxNdQMpz22AGi4uQWTzAjMssrsNAdKlkLYTCrG6o/bB8Ulm+10C2BZ2K39FaWYMut+83yrWuZuNZd7az3PRw1dkWCKaPupitYQP0kev9YMR69PSxvDNQQZQBUzLBv2TLnygRVqp4DQpMlFXbfY7forzvIkMrfhY5p+wXEyPU3HlWZVEeFSYA1A62pH/hjvXBJlqPPI9btjruSHsQPr/AqJD2Y/Zj7oCa4B8AcwiBHWg+p8ph+EixDLPEI36yw0MrMLRelRITMQwgfhC6wv2z6hLLDstlcFxgxJATr7Gtaei9IBxiKkodAwI1RgNkGh5BO+zbdl1EXOr+LS2L6cMVUs/szVNzgLpb2JqWY2MjHty0+Q860ML/JL0jyJ4dmBotNGi9mBJC9WKi49dLeHLXkpFhpkqEfxQaPYDfEU9vvq4CnBV4EAZMCCuhnO4i92Y5Xg61UcNRylSrVI6AV3EH17CTosdoVTiSFmC/FYC9GoQTpgqiPinjzujmcyVr0NtG+ANYAhWfQYe8HKFhAm7xqJE2SXJXJd3m3kIpHH+WeVg=</string>
+    <string name="wikitude_license_key">Q1hADLrK5HMutDp281ojzEeqbuLgrwEY6XYclpEJ16DErRUrypL4Z01/Drwj+EniL6QMUy4df5qmPb6Uh51NwRaVkJqiL9k67+4oMC1Jdl7VX+D2w2APeiEhSLQvE8MXALGeaALeyYKzn8OYuN1YPOvmA/L6KllbMMdCIJqBthZTYWx0ZWRfX3zueRDETTlRpMvXE8bjuYuVPiXrV0DrF+b/wfrajuxj16MDvgeeUdFeAXt9uFILB5iVQWmB5+FJ7iJGTR7uiTKivE+0r02JbuzDzyT55S2xqPrYv8iqQJ7MsTCm4PkaJx8t+AzUU/koQrcOPtdZylJtc9TWrqVcf3LcApwMpnwgmDCxY1P5DDXP5aLpmXwNp5Q/V/6cUgMZtamlQxUAEOIK0ISCYx9NWoZMEE5retyAq7T/EwfFEEM4u3wmw13DJThzfKsXrCsO6zxcj5n/gvsb6dhRCOY/I8x5qiPLolDJbyH6S+JXo+70vaHnic8y9Hlcciga3FuI4KQO7DfsSNkGoQs/2pOQ1K4BFu/fqZDNtsNQWRFaj/E2rz7VwzHUjjqVWxFoa5s0nYtLsBNC4p2Jy25R9FVQT/qHgvG5hU2t3PHLI7il+f8L26TayONYgzt3dMdOPVsbre+k1GR1hPugNagwG8Yc/TPEpgxF4ZGTGidw97Pbg8bE6WXzrRqGxGt0kK+jzeGebBWazLKIFL9ALaUYvV0Xd8PDJu/ZQoMj+HEyqVJYpigWkY1poE65wyh9dlwLi8veYPYtbK1pTuq093j71udD7GfNDWTaM9yVbHAEebGV0noMituau20J8w37kKP1KhOhlIkdr8JGDG4VAxekZYvosWTqjWegpMzm9xnSTT9RQ4w=</string>
     <string name="permissions_denied">The Experience needs the following permissions to enable an AR experience:</string>
     <string name="permission_rationale_text">The AR Experience needs the following permissions to enable an AR experience:</string>
     <string name="permission_rationale_title">AR Permissions</string>
@@ -47,4 +47,12 @@
     <string name="mission_en">Mission Exploration</string>
     <string name="pano">360度環景</string>
     <string name="ar">AR</string>
+    <string name="date">活動時間</string>
+    <string name="description">活動說明</string>
+    <string name="experience">如何體驗</string>
+    <string name="date_content">2022/03/22 ~ 2022/03/25</string>
+    <string name="description_content">臺北市政府願景館延續施政理念，以「smart Taipei One City」為主體，展示智慧交通、智慧健康、智慧經濟、智慧安防、智慧教育、智慧建築、智慧環境、智慧政府等八大類型市政服務。本體驗活動藉由台北通APP結合AR技術，讓市民朋友不僅可認識北市府市政服務、與AR影像進行合影互動，也可透過LBS定位導覽展館週邊的相關市府場館唷！</string>
+    <string name="experience_content">點按「展內互動體驗」並掃描臺北市政府願景館內服務有「AR Qrcode」的圖示即可體驗相關市政服務之導覽。市府願景館入口>台北通>城市儀表板>防疫儀表板。點按「展館週邊探索」將會出現範圍內的相關招牌，點選招牌即會出現該點位相關資訊及圖示導覽唷！</string>
+    <string name="ar_recognize_title">展內互動體驗</string>
+    <string name="ar_guide_title">展館週邊探索</string>
 </resources>

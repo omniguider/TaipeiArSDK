@@ -4,7 +4,6 @@ import java.io.Serializable;
 
 public class ArPattensData implements Serializable {
 
-    private String tdar_id;
     private String ap_puid;
     private String Is_civil;
 
@@ -18,23 +17,36 @@ public class ArPattensData implements Serializable {
     private String url_image;
     private String angle;
 
-    private String tdar_interactive_text;
-    private String tdar_interactive_url;
+    private String id;
+    private String heigh;
+    private String interactive_text;
+    private String interactive_url;
+    private String cover_idnetify_image;
+    private String size;
+    private String isTransparent;
 
-    private String tdar_view_size;
-
-    public String getTdar_interactive_text() {
-        return tdar_interactive_text;
+    public String getId() {
+        return id;
     }
 
-    public String getTdar_interactive_url() {
-        return tdar_interactive_url;
+    public String getHeigh() {
+        return heigh;
     }
-
-    public String getTdar_id() {
-        return tdar_id;
+    public String getInteractive_text() {
+        return interactive_text;
     }
-
+    public String getInteractive_url() {
+        return interactive_url;
+    }
+    public String getCover_idnetify_image() {
+        return cover_idnetify_image;
+    }
+    public String getSize() {
+        return size;
+    }
+    public String getIsTransparent() {
+        return isTransparent;
+    }
 
     public String getAp_puid() {
         return ap_puid;
@@ -104,9 +116,5 @@ public class ArPattensData implements Serializable {
 
     public String getAngle() {
         return angle;
-    }
-
-    public String getTdar_view_size() {
-        return tdar_view_size;
     }
 }

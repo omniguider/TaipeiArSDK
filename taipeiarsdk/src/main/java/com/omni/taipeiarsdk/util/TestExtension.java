@@ -147,6 +147,12 @@ public class TestExtension extends ArchitectViewExtension implements ArchitectJa
                         String pattenUrl = feedback.getData().getWtc()[0];
                         String Img = TaipeiArSDKActivity.ar_info_Img;
                         architectView.callJavascript("World.callPattenRecognizeStart('" + pattenUrl + "','" + Img + "');");
+
+//                        Log.e("LOG", "makeWtcFileRequest " + TaipeiArSDKActivity.active_method);
+//                        if (TaipeiArSDKActivity.active_method != null &&
+//                                TaipeiArSDKActivity.active_method.equals("1")) {
+//                            EventBus.getDefault().post(new OmniEvent(OmniEvent.TYPE_SHOW_AR_MODEL, ""));
+//                        }
                     }
 
                     @Override
@@ -171,16 +177,16 @@ public class TestExtension extends ArchitectViewExtension implements ArchitectJa
                         } else {
                             isRightTarget = "true";
 
-                            interactive_text = feedback.getData()[pos].getTdar_interactive_text();
-                            interactive_url = feedback.getData()[pos].getTdar_interactive_url();
+                            interactive_text = feedback.getData()[pos].getInteractive_text();
+                            interactive_url = feedback.getData()[pos].getInteractive_url();
                             EventBus.getDefault().post(new OmniEvent(OmniEvent.TYPE_USER_AR_INTERACTIVE_TEXT, ""));
 
                             String contentType = feedback.getData()[pos].getContent_type();
                             String content = feedback.getData()[pos].getContent();
-                            String angle = feedback.getData()[pos].getAngle();
+                            String angle = "270";
                             String view_size = "";
-                            if (feedback.getData()[pos].getTdar_view_size() != null)
-                                view_size = feedback.getData()[pos].getTdar_view_size();
+                            if (feedback.getData()[pos].getSize() != null)
+                                view_size = feedback.getData()[pos].getSize();
                             switch (view_size) {
                                 case "S":
                                     view_size = "0.09";
@@ -195,10 +201,12 @@ public class TestExtension extends ArchitectViewExtension implements ArchitectJa
                                     view_size = "0.135";
                                     break;
                             }
+                            String isTransparent = feedback.getData()[pos].getIsTransparent();
+                            String isCoverImage = feedback.getData()[pos].getCover_idnetify_image();
 
                             if (contentType != null) {
                                 ArchitectViewExtensionActivity.pattern_content_name = feedback.getData()[pos].getName();
-                                ArchitectViewExtensionActivity.support_pattern_id = feedback.getData()[pos].getTdar_id();
+                                ArchitectViewExtensionActivity.support_pattern_id = feedback.getData()[pos].getId();
                                 if (contentType.equals("video")) {
                                     Toast.makeText(activity, R.string.right_target_video_hint, Toast.LENGTH_SHORT).show();
                                 } else {
@@ -212,7 +220,7 @@ public class TestExtension extends ArchitectViewExtension implements ArchitectJa
                                         architectView.callJavascript("World.callbackImage('" + content + "','" + isRightTarget + "');");
                                         break;
                                     case "video":
-                                        architectView.callJavascript("World.callbackVideo('" + content + "','" + isRightTarget + "');");
+                                        architectView.callJavascript("World.callbackVideo('" + content + "','" + TestExtension.isRightTarget + "','" + isTransparent + "','" + isCoverImage + "');");
                                         break;
 
                                     case "text":

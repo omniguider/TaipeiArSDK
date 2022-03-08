@@ -168,7 +168,7 @@ var World = {
 
     			A function is attached to the onLoaded trigger to receive a notification once the 3D model is fully loaded. Depending on the size of the model and where it is stored (locally or remotely) it might take some time to completely load and it is recommended to inform the user about the loading time.
     		*/
-            var scaleValue = 0.045;
+            var scaleValue = parseFloat(view_size);
             var rotationValues = 0.0;
 //            if (World.model != null) {
 //                World.model.enabled = false;
@@ -472,9 +472,21 @@ var World = {
     		});
     },
 
-    createOverlaysVideo: function createOverlaysVideoFn(uri) {
+    createOverlaysVideo: function createOverlaysVideoFn(uri, videoTransparent, coverImage) {
 
-            console.info('doing video overlay');
+            console.info('doing video overlay'+videoTransparent);
+            var isTransparent_b;
+            if(videoTransparent == 'Y')
+                isTransparent_b = true;
+            else
+                isTransparent_b = false;
+
+            var isCoverImage_b;
+                if(coverImage == 'Y')
+                    isCoverImage_b = false;
+                else
+                    isCoverImage_b = true;
+
             document.getElementById('loader').style.visibility = 'visible';
             this.tracker = new AR.ClientTracker(pattenUrl, {
                 onTargetsLoaded: this.worldLoaded,
@@ -494,11 +506,13 @@ var World = {
 //    			translate: {
 //    				y: -0.3
 //    			}
-
+                isTransparent: isTransparent_b,
 //                onLoaded: World.modelIsLoaded,
                 onLoaded: function() {
                     console.log("model, onLoaded");
                     World.modelIsLoaded();
+
+//                    World.pageOne.snapToScreen.enabled = isCoverImage_b;
                     if (!World.pageOne.snapToScreen.enabled) {
                         World.pageOne.snapToScreen.enabled = false;
                         AR.platform.sendJSONObject({
@@ -525,7 +539,7 @@ var World = {
     				cam: [video]
     			},
     			snapToScreen: {
-    			    enabledOnExitFieldOfVision: true,
+    			    enabledOnExitFieldOfVision: isCoverImage_b,
                     snapContainer: document.getElementById('snapContainer')
                 },
     			onImageRecognized: function onImageRecognizedFn() {
@@ -731,7 +745,6 @@ var World = {
         		AR.platform.sendJSONObject(markerSelectedJSON);
      },
 
-
       callback3DModel: function callback3DModelFn(data, angle, isRightTarget, view_size){
            var str = data;
            var imageVisibility = String(isRightTarget);
@@ -766,10 +779,12 @@ var World = {
 
        },
 
-      callbackVideo: function callbackVideoFn(data, isRightTarget){
+      callbackVideo: function callbackVideoFn(data, isRightTarget, isTransparent, isCoverImage){
            var str = data;
            var imageVisibility = String(isRightTarget);
-           console.info('start add video resource');
+           var videoTransparent = isTransparent;
+           var coverImage = isCoverImage;
+           console.info('start add video resource'+isTransparent);
 
 //           document.getElementById('Camera').style.visibility = 'visible';
            if(imageVisibility == "true"){
@@ -779,7 +794,7 @@ var World = {
            document.getElementById('Image').style.visibility = 'visible';
            }
 
-           World.createOverlaysVideo(str);
+           World.createOverlaysVideo(str, videoTransparent, coverImage);
 
       },
 
@@ -858,9 +873,9 @@ var World = {
     },
 
     detectHideLoading: function detectHideLoadingFn() {
-        console.log("detectHideLoading," +
-            " wtcLoaded:" + World.wtcLoaded +
-            " modelIsLoaded:" + World.modelLoaded);
+//        console.log("detectHideLoading," +
+//            " wtcLoaded:" + World.wtcLoaded +
+//            " modelIsLoaded:" + World.modelLoaded);
 //        if (World.modelLoaded)
 //            AR.platform.sendJSONObject({
 //                action: "everyIsReady"

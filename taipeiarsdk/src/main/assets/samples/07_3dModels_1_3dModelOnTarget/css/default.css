@@ -118,6 +118,16 @@
 	#overlayPicker a img {
 		width:100%;
 	}
+
+	#snapContainer {
+        width: 80%;
+        position: absolute;
+        top: 20%;
+        left: 10%;
+        margin: auto;
+        background: #FFFFFF;
+        opacity: .0;
+    }
 }
 
 @media screen and (orientation: landscape) {
@@ -137,4 +147,14 @@
 	#overlayPicker a img {
 		width: 100%;
 	}
+
+	#snapContainer {
+        width: 30%;
+        position: absolute;
+        top: 5%;
+        left: 35%;
+        margin: auto;
+        background: #FFFFFF;
+        opacity: .0;
+    }
 }

@@ -7,6 +7,8 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.android.volley.VolleyError;
+import com.omni.taipeiarsdk.SimpleArActivity;
+import com.omni.taipeiarsdk.model.tpe_location.IndexData;
 import com.omni.taipeiarsdk.model.tpe_location.IndexFeedback;
 import com.omni.taipeiarsdk.model.tpe_location.IndexPoi;
 import com.omni.taipeiarsdk.model.tpe_location.Topic;
@@ -42,7 +44,7 @@ public class PoiDataFromApplicationModelExtension extends ArchitectViewExtension
         Log.e("LOG", "onLocationChanged: " + "poiDataFromApplicationMode");
 //        EventBus.getDefault().post(new OmniEvent(OmniEvent.TYPE_USER_AR_LOCATION, location));
         // radius in km ; 100 = 100km
-        makeArPointsReq();
+        makeArPointsReq(location);
     }
 
     /**
@@ -78,8 +80,8 @@ public class PoiDataFromApplicationModelExtension extends ArchitectViewExtension
         final String ATTR_SELECTED = "selected";
         final String ATTR_CATEGORY = "category";
 
-        topics = indexFeedback.getData().getTopic();
-        indexPois = indexFeedback.getData().getPoi();
+//        topics = indexFeedback.getData().getTopic();
+        indexPois = indexFeedback.getPoi();
 
         // generates dataSize POIs
 //        for (Topic topic : topics) {
@@ -106,7 +108,7 @@ public class PoiDataFromApplicationModelExtension extends ArchitectViewExtension
             poiInformation.put(ATTR_ID, indexPoi.getId());
             poiInformation.put(ATTR_NAME, indexPoi.getName());
             poiInformation.put(ATTR_DESCRIPTION, "");
-            poiInformation.put(ATTR_CATEGORY, indexPoi.getCategory());
+            poiInformation.put(ATTR_CATEGORY, indexPoi.getCategory().getTitle());
 
             poiInformation.put(ATTR_LATITUDE, String.valueOf(indexPoi.getLat()));
             poiInformation.put(ATTR_LONGITUDE, String.valueOf(indexPoi.getLng()));
@@ -123,9 +125,9 @@ public class PoiDataFromApplicationModelExtension extends ArchitectViewExtension
         return pois;
     }
 
-    private void makeArPointsReq() {
+    private void makeArPointsReq(Location location) {
         if (!injectedPois) {
-            TpeArApi.getInstance().getSpecificPoi(activity, "",
+            TpeArApi.getInstance().getSpecificPoi(activity, "poi", location,
                     new NetworkManager.NetworkManagerListener<IndexFeedback>() {
                         @Override
                         public void onSucceed(IndexFeedback feedback) {

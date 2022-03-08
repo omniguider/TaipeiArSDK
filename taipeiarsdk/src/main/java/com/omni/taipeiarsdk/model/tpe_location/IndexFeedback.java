@@ -7,7 +7,13 @@ public class IndexFeedback implements Serializable {
     private String result;
     private String code;
     private String error_message;
-    private IndexData data;
+//    private IndexData data;
+
+    private IndexPoi[] data;
+
+    public IndexPoi[] getPoi() {
+        return data;
+    }
 
     public String getResult() {
         return result;
@@ -33,11 +39,11 @@ public class IndexFeedback implements Serializable {
         this.error_message = error_message;
     }
 
-    public IndexData getData() {
-        return data;
-    }
-
-    public void setData(IndexData data) {
-        this.data = data;
-    }
+//    public IndexData getData() {
+//        return data;
+//    }
+//
+//    public void setData(IndexData data) {
+//        this.data = data;
+//    }
 }

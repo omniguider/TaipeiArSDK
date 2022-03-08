@@ -41,13 +41,15 @@
             android:layout_marginStart="16dp"
             android:layout_marginTop="12dp"
             android:layout_marginEnd="16dp"
+            android:layout_marginBottom="24dp"
             android:textColor="@color/gray_33"
             android:textSize="14sp" />
 
         <LinearLayout
+            android:id="@+id/dialog_poi_info_btn_ll"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:background="@drawable/solid_round_bottom_green"
             android:orientation="horizontal">
 
             <TextView
@@ -56,21 +58,24 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom"
                 android:layout_weight="1"
-                android:background="@drawable/solid_round_left_bottom_green"
                 android:gravity="center"
                 android:padding="16dp"
                 android:text="@string/pano"
                 android:textColor="@android:color/white"
                 android:textSize="16sp" />
 
+            <View
+                android:id="@+id/dialog_poi_info_divider"
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="@android:color/white" />
+
             <TextView
                 android:id="@+id/dialog_poi_info_ar"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom"
-                android:layout_marginStart="1dp"
                 android:layout_weight="1"
-                android:background="@drawable/solid_round_right_bottom_green"
                 android:gravity="center"
                 android:padding="16dp"
                 android:text="@string/ar"

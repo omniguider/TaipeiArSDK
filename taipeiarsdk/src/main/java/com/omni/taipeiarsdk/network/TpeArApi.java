@@ -2,6 +2,7 @@ package com.omni.taipeiarsdk.network;
 
 import android.app.Activity;
 import android.content.Context;
+import android.location.Location;
 import android.util.Log;
 
 import com.android.volley.Request;
@@ -88,10 +89,13 @@ public class TpeArApi {
         NetworkManager.getInstance().addPostRequest(activity, call, UserImageFeedback.class, listener);
     }
 
-    public void getSpecificPoi(Context context, String type, NetworkManager.NetworkManagerListener<IndexFeedback> listener) {
+    public void getSpecificPoi(Context context, String type, Location mLastLocation, NetworkManager.NetworkManagerListener<IndexFeedback> listener) {
         String url = NetworkManager.TPE_DOMAIN_NAME + "api/get_index";
         Map<String, String> params = new HashMap<>();
         params.put("type", type);
+        params.put("user_lat", String.valueOf(mLastLocation.getLatitude()));
+        params.put("user_lng", String.valueOf(mLastLocation.getLongitude()));
+        params.put("radius", "2");
 
         NetworkManager.getInstance().addJsonRequest(context, Request.Method.GET, url, params, IndexFeedback.class, TIMEOUT, listener);
     }

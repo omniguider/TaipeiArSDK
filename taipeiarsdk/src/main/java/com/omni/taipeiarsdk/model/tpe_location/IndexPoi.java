@@ -31,8 +31,8 @@ public class IndexPoi implements Serializable {
         return desc;
     }
 
-    public String getCategory() {
-        return category.getTitle();
+    public Category getCategory() {
+        return category;
     }
 
     public String getLat() {
@@ -46,29 +46,21 @@ public class IndexPoi implements Serializable {
     public String getImage() {
         return image;
     }
-}
 
-class Category implements Serializable {
-    private String id;
-    private String title;
-    private String image;
+    public String getHyperlink_text() {
+        return hyperlink_text;
+    }
 
-    public String getTitle() {
-        return title;
+    public String getHyperlink_url() {
+        return hyperlink_url;
+    }
+
+    public ArTrigger getAr_trigger() {
+        return ar_trigger;
+    }
+
+    public Ar getAr() {
+        return ar;
     }
 }
 
-class ArTrigger implements Serializable {
-    private String active_method;
-    private String distance;
-    private String identify_image_path;
-}
-
-class Ar implements Serializable {
-    private String text;
-    private String url;
-    private String heigh;
-    private String content_type;
-    private String interactive_text;
-    private String interactive_url;
-}

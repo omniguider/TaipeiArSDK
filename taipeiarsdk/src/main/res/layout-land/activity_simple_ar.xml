@@ -12,6 +12,7 @@
         android:layout_height="?attr/actionBarSize"
         android:background="@color/colorPrimary"
         android:elevation="6dp"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -60,7 +61,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+        app:layout_constraintTop_toTopOf="@+id/toolbar" />
 
     <LinearLayout
         android:id="@+id/activity_simple_ar_interactive_ll"
@@ -160,8 +161,8 @@
 
     <FrameLayout
         android:id="@+id/focus_fl"
-        android:layout_width="440dp"
-        android:layout_height="320dp"
+        android:layout_width="360dp"
+        android:layout_height="180dp"
         android:layout_marginTop="52dp"
         android:paddingStart="60dp"
         android:paddingEnd="60dp"

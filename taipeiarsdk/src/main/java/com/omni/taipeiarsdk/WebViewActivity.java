@@ -38,14 +38,6 @@ public class WebViewActivity extends AppCompatActivity {
 
         ((TextView) findViewById(R.id.activity_web_view_fl_action_bar_title)).setText(title);
 
-//        Intent i = new Intent(Intent.ACTION_VIEW);
-//        i.setData(Uri.parse(weblink));
-//        startActivity(i);
-//        finish();
-
-        //Log.e("LOG", "WebViewActivity: " + weblink);
-
-
         webView = (WebView) findViewById(R.id.webView1);
         webView.getSettings().setJavaScriptEnabled(true);
         webView.getSettings().setLoadWithOverviewMode(true);

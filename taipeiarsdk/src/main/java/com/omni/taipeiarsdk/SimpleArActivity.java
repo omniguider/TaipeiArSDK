@@ -3,7 +3,9 @@ package com.omni.taipeiarsdk;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.Color;
@@ -60,13 +62,18 @@ import com.google.android.material.button.MaterialButton;
 import com.omni.taipeiarsdk.model.ArScanInfo;
 import com.omni.taipeiarsdk.model.OmniEvent;
 import com.omni.taipeiarsdk.model.UserImageFeedback;
+import com.omni.taipeiarsdk.model.tpe_location.Ar;
+import com.omni.taipeiarsdk.model.tpe_location.IndexData;
 import com.omni.taipeiarsdk.model.tpe_location.IndexFeedback;
 import com.omni.taipeiarsdk.model.tpe_location.IndexPoi;
 import com.omni.taipeiarsdk.network.NetworkManager;
 import com.omni.taipeiarsdk.network.TpeArApi;
 import com.omni.taipeiarsdk.pano.ArPattensFeedback;
 import com.omni.taipeiarsdk.tool.TaipeiArSDKText;
+import com.omni.taipeiarsdk.util.PermissionUtil;
+import com.omni.taipeiarsdk.util.SampleCategory;
 import com.omni.taipeiarsdk.util.SampleData;
+import com.omni.taipeiarsdk.util.SampleJsonParser;
 import com.omni.taipeiarsdk.util.TestExtension;
 import com.omni.taipeiarsdk.view.GridViewItem;
 import com.wikitude.architect.ArchitectJavaScriptInterfaceListener;
@@ -85,6 +92,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static com.wikitude.architect.ArchitectView.CaptureScreenCallback.CAPTURE_MODE_CAM_AND_WEBVIEW;
 
@@ -184,6 +193,11 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
     private GridView gridView;
     private String selectPOIId;
     private IndexFeedback mIndexFeedback;
+    private IndexPoi indexPoi = null;
+
+    private List<SampleCategory> categories;
+    private static final String sampleDefinitionsPath = "samples/samples.json";
+    private final PermissionManager permissionManager = ArchitectView.getPermissionManager();
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(OmniEvent event) {
@@ -214,7 +228,11 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
                 arPattensFeedback = (ArPattensFeedback) event.getObj();
                 gridView.setVisibility(View.VISIBLE);
                 hidePatternHint();
-                setPatternGrid(arPattensFeedback);
+//                setPatternGrid(arPattensFeedback);
+                showArModel(0);
+                break;
+            case OmniEvent.TYPE_SHOW_AR_MODEL:
+//                showArModel(TaipeiArSDKActivity.arContent);
                 break;
         }
     }
@@ -270,12 +288,12 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
         mMap.getUiSettings().setCompassEnabled(true);
         mMap.getUiSettings().setZoomGesturesEnabled(true);
 
-        TpeArApi.getInstance().getSpecificPoi(this, "",
+        TpeArApi.getInstance().getSpecificPoi(this, "poi", mLastLocation,
                 new NetworkManager.NetworkManagerListener<IndexFeedback>() {
                     @Override
                     public void onSucceed(IndexFeedback feedback) {
                         mIndexFeedback = feedback;
-                        addPOIMarkers(feedback.getData().getPoi());
+                        addPOIMarkers(feedback.getPoi());
                     }
 
                     @Override
@@ -595,7 +613,9 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
             mMapFragment.getView().setVisibility(View.GONE);
             position.setVisibility(View.GONE);
             intro.setVisibility(View.GONE);
-            title.setText("AR");
+            title.setText(getString(R.string.ar_recognize_title));
+        } else {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         }
 
         position.setOnClickListener(new View.OnClickListener() {
@@ -641,6 +661,11 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
                 ar_img_support_btn_tv.setTextColor(getResources().getColor(android.R.color.white));
             }
         });
+
+        if (TaipeiArSDKActivity.active_method != null &&
+                TaipeiArSDKActivity.active_method.equals("1")) {
+//            showArModel(TaipeiArSDKActivity.arContent);
+        }
     }
 
     @Override
@@ -701,6 +726,7 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
     }
 
     public void showToolButtons() {
+        Log.e("LOG", "showToolButtons");
         move_3d_model.setOnCheckedChangeListener(mOnCheckedChangeListener);
         rotate_3d_model.setOnCheckedChangeListener(mOnCheckedChangeListener);
         interactive.setOnClickListener(mOnClickListener);
@@ -736,10 +762,20 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
     public void showRescanButton() {
         rescanVideo.setOnClickListener(mOnClickListener);
         rescanVideo.setAlpha(1f);
+
+        takePhoto.setOnClickListener(mOnClickListener);
+        switch_cam.setOnClickListener(mOnClickListener);
+        takePhoto.setAlpha(1f);
+        switch_cam.setAlpha(1f);
     }
 
     public void hideRescanButton() {
         rescanVideo.setAlpha(0f);
+
+        takePhoto.setOnClickListener(null);
+        switch_cam.setOnClickListener(null);
+        takePhoto.setAlpha(0f);
+        switch_cam.setAlpha(0f);
     }
 
     public void showPatternHint() {
@@ -763,8 +799,7 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
     }
 
     public void showPOIInfo(String id) {
-        IndexPoi indexPoi = null;
-        for (IndexPoi poi : mIndexFeedback.getData().getPoi()) {
+        for (IndexPoi poi : mIndexFeedback.getPoi()) {
             if (poi.getId().equals(id)) {
                 indexPoi = poi;
                 break;
@@ -780,13 +815,50 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
         String url = indexPoi.getImage();
         NetworkManager.getInstance().setNetworkImage(this,
                 ((NetworkImageView) view.findViewById(R.id.dialog_poi_info_img)),
-                url.replace("http","https"));
+                url);
         ((TextView) view.findViewById(R.id.dialog_poi_info_title)).setText(indexPoi.getName());
         ((TextView) view.findViewById(R.id.dialog_poi_info_desc)).setText(indexPoi.getDesc());
-        view.findViewById(R.id.dialog_poi_info_close).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
+        if (indexPoi.getHyperlink_url().length() == 0) {
+            view.findViewById(R.id.dialog_poi_info_pano).setVisibility(View.GONE);
+            view.findViewById(R.id.dialog_poi_info_divider).setVisibility(View.GONE);
+        }
+        if (indexPoi.getAr_trigger().getActive_method().length() == 0) {
+            view.findViewById(R.id.dialog_poi_info_ar).setVisibility(View.GONE);
+            view.findViewById(R.id.dialog_poi_info_divider).setVisibility(View.GONE);
+        }
+        if (indexPoi.getHyperlink_url().length() == 0 &&
+                indexPoi.getAr_trigger().getActive_method().length() == 0) {
+            view.findViewById(R.id.dialog_poi_info_btn_ll).setVisibility(View.GONE);
+        }
+
+        view.findViewById(R.id.dialog_poi_info_close).setOnClickListener(v -> dialog.dismiss());
+        view.findViewById(R.id.dialog_poi_info_pano).setOnClickListener(view1 -> {
+            dialog.dismiss();
+            Intent intent = new Intent(SimpleArActivity.this, WebViewActivity.class);
+            intent.putExtra(TaipeiArSDKText.KEY_WEB_LINK, indexPoi.getHyperlink_url());
+            intent.putExtra(TaipeiArSDKText.KEY_WEB_TITLE, indexPoi.getName());
+            startActivity(intent);
+        });
+        view.findViewById(R.id.dialog_poi_info_ar).setOnClickListener(view1 -> {
+            dialog.dismiss();
+            TaipeiArSDKActivity.active_method = indexPoi.getAr_trigger().getActive_method();
+            switch (indexPoi.getAr_trigger().getActive_method()) {
+                case "0":
+                    break;
+                case "1":
+                    double lat = mLastLocation.getLatitude() +
+                            (Double.parseDouble(indexPoi.getLat()) - mLastLocation.getLatitude()) * 0.02;
+                    double lng = mLastLocation.getLongitude() +
+                            (Double.parseDouble(indexPoi.getLng()) - mLastLocation.getLongitude()) * 0.02;
+                    Log.e("LOG", "createModelAtLocation lat" + lat);
+                    Log.e("LOG", "createModelAtLocation lng" + lng);
+                    architectView.callJavascript("World.createModelAtLocation(" +
+                            lat + "," + lng +
+                            "," + 0.18 + "," + 0 + "," + 0 + ",'" + indexPoi.getAr().getContent() + "')");
+                    break;
+                case "2":
+                    mEventBus.post(new OmniEvent(OmniEvent.TYPE_OPEN_AR_RECOGNIZE, indexPoi.getAr()));
+                    break;
             }
         });
     }
@@ -877,7 +949,8 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
             final File screenCaptureFile = new File(Environment.getExternalStorageDirectory().toString(), "screenCapture_" + System.currentTimeMillis() + ".jpg");
             // 1. Save bitmap to file & compress to jpeg. You may use PNG too
             try {
-
+                File filePath = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS) + File.separator + "MyAppFolder");
+                filePath.mkdirs();
                 final FileOutputStream out = new FileOutputStream(screenCaptureFile);
                 screenCapture.compress(Bitmap.CompressFormat.JPEG, 90, out);
                 out.flush();
@@ -892,24 +965,24 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
 //                share.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 //                share.putExtra(Intent.EXTRA_STREAM, apkURI);
 
-                TpeArApi.getInstance().uploadUserImage(this, screenCaptureFile.getAbsolutePath(), new NetworkManager.NetworkManagerListener<UserImageFeedback>() {
-                    @Override
-                    public void onSucceed(UserImageFeedback userImageFeedback) {
-//                        Log.e(LOG_TAG, "userImageFeedback" + userImageFeedback.getData());
-                        final Intent share = new Intent(Intent.ACTION_SEND);
-                        share.setType("text/plain");
-                        share.putExtra(Intent.EXTRA_TEXT, userImageFeedback.getData() + "\n" +
-                                getResources().getString(R.string.share_download_hint) + "\n" +
-                                "https://play.google.com/store/apps/details?id=com.taoyuan.vrar&hl=zh-TW");
-                        final String chooserTitle = "Share Snapshot";
-                        startActivity(Intent.createChooser(share, chooserTitle));
-                    }
-
-                    @Override
-                    public void onFail(VolleyError error, boolean shouldRetry) {
-//                        Log.e(LOG_TAG, "onFail" + error.toString());
-                    }
-                });
+//                TpeArApi.getInstance().uploadUserImage(this, screenCaptureFile.getAbsolutePath(), new NetworkManager.NetworkManagerListener<UserImageFeedback>() {
+//                    @Override
+//                    public void onSucceed(UserImageFeedback userImageFeedback) {
+////                        Log.e(LOG_TAG, "userImageFeedback" + userImageFeedback.getData());
+//                        final Intent share = new Intent(Intent.ACTION_SEND);
+//                        share.setType("text/plain");
+//                        share.putExtra(Intent.EXTRA_TEXT, userImageFeedback.getData() + "\n" +
+//                                getResources().getString(R.string.share_download_hint) + "\n" +
+//                                "https://play.google.com/store/apps/details?id=com.taoyuan.vrar&hl=zh-TW");
+//                        final String chooserTitle = "Share Snapshot";
+//                        startActivity(Intent.createChooser(share, chooserTitle));
+//                    }
+//
+//                    @Override
+//                    public void onFail(VolleyError error, boolean shouldRetry) {
+////                        Log.e(LOG_TAG, "onFail" + error.toString());
+//                    }
+//                });
 
 
                 // 3. launch intent-chooser
@@ -1037,22 +1110,20 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
 
     private void showArModel(int position) {
         TestExtension.isRightTarget = "true";
-        TestExtension.interactive_text = arPattensFeedback.getData()[position].getTdar_interactive_text();
-        TestExtension.interactive_url = arPattensFeedback.getData()[position].getTdar_interactive_url();
+        TestExtension.interactive_text = arPattensFeedback.getData()[position].getInteractive_text();
+        TestExtension.interactive_url = arPattensFeedback.getData()[position].getInteractive_url();
         EventBus.getDefault().post(new OmniEvent(OmniEvent.TYPE_USER_AR_INTERACTIVE_TEXT, ""));
 
         String contentType = arPattensFeedback.getData()[position].getContent_type();
         String content = arPattensFeedback.getData()[position].getContent();
-        String angle = arPattensFeedback.getData()[position].getAngle();
+//        String angle = arPattensFeedback.getData()[position].getAngle();
+        String angle = "270";
         String view_size = "";
-        if (arPattensFeedback.getData()[position].getTdar_view_size() != null)
-            view_size = arPattensFeedback.getData()[position].getTdar_view_size();
+        if (arPattensFeedback.getData()[position].getSize() != null)
+            view_size = arPattensFeedback.getData()[position].getSize();
         switch (view_size) {
             case "S":
                 view_size = "0.09";
-                break;
-            case "N":
-                view_size = "0.135";
                 break;
             case "B":
                 view_size = "0.18";
@@ -1061,6 +1132,7 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
                 view_size = "0.135";
                 break;
         }
+        String isTransparent = arPattensFeedback.getData()[position].getIsTransparent();
 
         if (contentType != null) {
             if (contentType.equals("video")) {
@@ -1077,10 +1149,56 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
                     architectView.callJavascript("World.callbackImage('" + content + "','" + TestExtension.isRightTarget + "');");
                     break;
                 case "video":
-                    architectView.callJavascript("World.callbackVideo('" + content + "','" + TestExtension.isRightTarget + "');");
+                    architectView.callJavascript("World.callbackVideo('" + content + "','" + TestExtension.isRightTarget + "','" + isTransparent + "');");
                     break;
                 case "text":
                     String textImgUrl = arPattensFeedback.getData()[position].getUrl_image();
+                    architectView.callJavascript("World.callbackText('" + textImgUrl + "','" + TestExtension.isRightTarget + "');");
+                    break;
+            }
+        }
+    }
+
+    private void showArModel(Ar arModel) {
+        Log.e("LOG", "showArModel");
+        TestExtension.isRightTarget = "true";
+        TestExtension.interactive_text = arModel.getInteractive_text();
+        TestExtension.interactive_url = arModel.getInteractive_url();
+        EventBus.getDefault().post(new OmniEvent(OmniEvent.TYPE_USER_AR_INTERACTIVE_TEXT, ""));
+
+        String contentType = arModel.getContent_type();
+        String content = arModel.getContent();
+        String angle = "270";
+        String view_size = "";
+        if (arModel.getSize() != null)
+            view_size = arModel.getSize();
+        switch (view_size) {
+            case "S":
+                view_size = "0.09";
+                break;
+            case "B":
+                view_size = "0.18";
+                break;
+            default:
+                view_size = "0.135";
+                break;
+        }
+        String isTransparent = arModel.getIsTransparent();
+
+        if (contentType != null) {
+            switch (contentType) {
+                case "3d_model":
+                    Log.e("LOG", "showArModel 3d_model");
+                    architectView.callJavascript("World.callback3DModel('" + content + "','" + angle + "','" + TestExtension.isRightTarget + "','" + view_size + "');");
+                    break;
+                case "image":
+                    architectView.callJavascript("World.callbackImage('" + content + "','" + TestExtension.isRightTarget + "');");
+                    break;
+                case "video":
+                    architectView.callJavascript("World.callbackVideo('" + content + "','" + TestExtension.isRightTarget + "','" + isTransparent + "');");
+                    break;
+                case "text":
+                    String textImgUrl = arModel.getUrl();
                     architectView.callJavascript("World.callbackText('" + textImgUrl + "','" + TestExtension.isRightTarget + "');");
                     break;
             }
