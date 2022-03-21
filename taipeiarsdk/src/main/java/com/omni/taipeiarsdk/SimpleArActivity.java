@@ -2,11 +2,15 @@ package com.omni.taipeiarsdk;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.Color;
 import android.hardware.GeomagneticField;
@@ -15,10 +19,13 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
@@ -91,6 +98,7 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -300,6 +308,20 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
                     public void onFail(VolleyError error, boolean shouldRetry) {
                     }
                 });
+
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                for (IndexPoi poi : mIndexFeedback.getPoi()) {
+                    if (poi.getName().equals(marker.getTitle())) {
+                        showPOIInfo(poi.getId());
+                        break;
+                    }
+                }
+                marker.showInfoWindow();
+                return true;
+            }
+        });
 
         LatLng current = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
         addUserMarker(current, mLastLocation);
@@ -821,6 +843,8 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
         if (indexPoi.getHyperlink_url().length() == 0) {
             view.findViewById(R.id.dialog_poi_info_pano).setVisibility(View.GONE);
             view.findViewById(R.id.dialog_poi_info_divider).setVisibility(View.GONE);
+        } else {
+            ((TextView) view.findViewById(R.id.dialog_poi_info_pano)).setText(indexPoi.getHyperlink_text());
         }
         if (indexPoi.getAr_trigger().getActive_method().length() == 0) {
             view.findViewById(R.id.dialog_poi_info_ar).setVisibility(View.GONE);
@@ -846,17 +870,30 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
                 case "0":
                     break;
                 case "1":
-                    double lat = mLastLocation.getLatitude() +
-                            (Double.parseDouble(indexPoi.getLat()) - mLastLocation.getLatitude()) * 0.02;
-                    double lng = mLastLocation.getLongitude() +
-                            (Double.parseDouble(indexPoi.getLng()) - mLastLocation.getLongitude()) * 0.02;
+                    double distance = getDistance(
+                            mLastLocation.getLatitude(),
+                            mLastLocation.getLongitude(),
+                            Double.parseDouble(indexPoi.getLat()),
+                            Double.parseDouble(indexPoi.getLng()));
+                    double deltaX = (Double.parseDouble(indexPoi.getLat()) - mLastLocation.getLatitude());
+                    double deltaY = (Double.parseDouble(indexPoi.getLng()) - mLastLocation.getLongitude());
+                    double lat = mLastLocation.getLatitude() + deltaX / distance * 20;
+                    double lng = mLastLocation.getLongitude() + deltaY / distance * 20;
+                    double degree = findDegree((float) deltaX, (float) deltaY);
+
                     Log.e("LOG", "createModelAtLocation lat" + lat);
                     Log.e("LOG", "createModelAtLocation lng" + lng);
-                    architectView.callJavascript("World.createModelAtLocation(" +
-                            lat + "," + lng +
-                            "," + 0.18 + "," + 0 + "," + 0 + ",'" + indexPoi.getAr().getContent() + "')");
+                    if (indexPoi.getAr().getContent_type().equals("3d_model")) {
+                        architectView.callJavascript("World.createModelAtLocation(" +
+                                lat + "," + lng +
+                                "," + 0.45 + "," + 0 + "," + degree + ",'" + indexPoi.getAr().getContent() + "')");
+                    } else if (indexPoi.getAr().getContent_type().equals("image")) {
+                        architectView.callJavascript("World.createImageAtLocation(" +
+                                lat + "," + lng + ",'" + indexPoi.getAr().getContent() + "')");
+                    }
                     break;
                 case "2":
+                    TaipeiArSDKActivity.ar_open_by_poi = "true";
                     mEventBus.post(new OmniEvent(OmniEvent.TYPE_OPEN_AR_RECOGNIZE, indexPoi.getAr()));
                     break;
             }
@@ -904,6 +941,7 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
 
                 interactive_ll.setVisibility(View.GONE);
             } else if (view.getId() == rescanVideo.getId()) {
+                Log.e("LOG", "rescanVideo");
                 showPatternHint();
                 hideRescanButton();
                 architectView.callJavascript("World.switchCamToBack();");
@@ -949,13 +987,28 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
             final File screenCaptureFile = new File(Environment.getExternalStorageDirectory().toString(), "screenCapture_" + System.currentTimeMillis() + ".jpg");
             // 1. Save bitmap to file & compress to jpeg. You may use PNG too
             try {
-                File filePath = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS) + File.separator + "MyAppFolder");
+                File filePath = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + File.separator + "TaipeiAR");
                 filePath.mkdirs();
-                final FileOutputStream out = new FileOutputStream(screenCaptureFile);
-                screenCapture.compress(Bitmap.CompressFormat.JPEG, 90, out);
+                final FileOutputStream out;
+
+                if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
+                    ContentResolver resolver = getContentResolver();
+                    ContentValues contentValues = new ContentValues();
+                    contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, "screenCapture_" + System.currentTimeMillis() + ".jpg");
+                    contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpg");
+                    contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, "DCIM/" + "TaipeiAR");
+                    Uri imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
+                    out = (FileOutputStream) resolver.openOutputStream(imageUri);
+
+                } else {
+                    out = new FileOutputStream(filePath + File.separator + "screenCapture_" + System.currentTimeMillis() + ".jpg");
+
+                }
+                screenCapture.compress(Bitmap.CompressFormat.JPEG, 100, out);
                 out.flush();
                 out.close();
 
+                Toast.makeText(getApplicationContext(), getString(R.string.save_picture), Toast.LENGTH_LONG).show();
                 // 2. create send intent
 //                final Intent share = new Intent(Intent.ACTION_SEND);
 //                share.setType("image/jpg");
@@ -1203,5 +1256,23 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
                     break;
             }
         }
+    }
+
+    public float getDistance(double p1Lat, double p1Lon, double p2Lat, double p2Lon) {
+        Location l1 = new Location("One");
+        l1.setLatitude(p1Lat);
+        l1.setLongitude(p1Lon);
+
+        Location l2 = new Location("Two");
+        l2.setLatitude(p2Lat);
+        l2.setLongitude(p2Lon);
+
+        return l1.distanceTo(l2);
+    }
+
+    public static float findDegree(float x, float y) {
+        float value = (float) ((Math.atan2(x, y) / Math.PI) * 180f);
+        if (value < 0) value += 360f;
+        return value - 90f;
     }
 }

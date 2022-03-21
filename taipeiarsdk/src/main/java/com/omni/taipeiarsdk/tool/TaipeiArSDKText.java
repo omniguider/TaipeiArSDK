@@ -44,7 +44,7 @@ public class TaipeiArSDKText {
     public static final int MAP_ZOOM_LEVEL_MISSION = 20;
     public static final int MARKER_Z_INDEX = 150;
     public static final int MAP_EXT_MIN_ZOOM_LEVEL = 10;
-    public static final int MAP_MIN_ZOOM_LEVEL = 16;
+    public static final int MAP_MIN_ZOOM_LEVEL = 15;
     public static final int MAP_MAX_ZOOM_LEVEL = 22;
     public static final float POLYLINE_WIDTH = 50.0f;
     public static final int POLYLINE_Z_INDEX = 100;

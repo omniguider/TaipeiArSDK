@@ -5,6 +5,8 @@
 
     <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyAEbX2Qdl1QeoJcexJAgn6EnJy_ypBWWjc</string>
     <string name="wikitude_license_key">Q1hADLrK5HMutDp281ojzEeqbuLgrwEY6XYclpEJ16DErRUrypL4Z01/Drwj+EniL6QMUy4df5qmPb6Uh51NwRaVkJqiL9k67+4oMC1Jdl7VX+D2w2APeiEhSLQvE8MXALGeaALeyYKzn8OYuN1YPOvmA/L6KllbMMdCIJqBthZTYWx0ZWRfX3zueRDETTlRpMvXE8bjuYuVPiXrV0DrF+b/wfrajuxj16MDvgeeUdFeAXt9uFILB5iVQWmB5+FJ7iJGTR7uiTKivE+0r02JbuzDzyT55S2xqPrYv8iqQJ7MsTCm4PkaJx8t+AzUU/koQrcOPtdZylJtc9TWrqVcf3LcApwMpnwgmDCxY1P5DDXP5aLpmXwNp5Q/V/6cUgMZtamlQxUAEOIK0ISCYx9NWoZMEE5retyAq7T/EwfFEEM4u3wmw13DJThzfKsXrCsO6zxcj5n/gvsb6dhRCOY/I8x5qiPLolDJbyH6S+JXo+70vaHnic8y9Hlcciga3FuI4KQO7DfsSNkGoQs/2pOQ1K4BFu/fqZDNtsNQWRFaj/E2rz7VwzHUjjqVWxFoa5s0nYtLsBNC4p2Jy25R9FVQT/qHgvG5hU2t3PHLI7il+f8L26TayONYgzt3dMdOPVsbre+k1GR1hPugNagwG8Yc/TPEpgxF4ZGTGidw97Pbg8bE6WXzrRqGxGt0kK+jzeGebBWazLKIFL9ALaUYvV0Xd8PDJu/ZQoMj+HEyqVJYpigWkY1poE65wyh9dlwLi8veYPYtbK1pTuq093j71udD7GfNDWTaM9yVbHAEebGV0noMituau20J8w37kKP1KhOhlIkdr8JGDG4VAxekZYvosWTqjWegpMzm9xnSTT9RQ4w=</string>
+<!--    test-->
+<!--    <string name="wikitude_license_key">aidAPdewpd7asNvbry/FtR8/PDFO7Wg9zxgszwjhHOs7q6+HpFNZtknkZzaTxxtEt2nwow4KbDU220BRIaR82ImvWl0mQmhPZglQtTg9w/Pl1/fx/VkOIIhLU1rb8zwMa95MgOIyN6bUZywx3mkkTHM0rvd+sEvk8baQDzmaewVTYWx0ZWRfXxwbGnVg7IJARfA5830PASYBd1j+6BCrYBMEjkQ/cpxnA9x5JUZAVfGmu2YlVDVCqEMATdsQbMQL/8l9Ufe/9QurYzX58oEye7UvfBwW9UJg5d/L/ihFIvIDs2n2q4987z1TmjYH6pOfIGS3whTEgIcOqc1ZGHFqeSrniNhlihRnbIk1eRJBrbHe//tC9gaDDOcD2vSQqKBPVJZEJH1qfDAG5kEX1ISwcYUCp2Nxd4K0efyvRhWcf7xV7xQbB6aNUJlGFXV00xTkvN8vG9m73vbNxVXV0A6WjfMJrQxQ4H087tPU/fwL6D0lxYS52qB8NPTWQWVmlUMj9zetOLm0LGukb108QNhqceb1v1jRSo+uGDD3r0vhgmDCErcdo/D+31fgD6J1PDfhKHWibPqip2J4kpibnuuJon8QU4USz1wR3qn3IdBypRPaVRm4WBSAQRjMncAkNwwsrhfn5O98j8EmLqwRKmx5wopgXfrmEvhubGg4fInoYMECvGO36ZvaPpdC3pN+/b4UAAdzxNMI3+KmzITkH7PPSu4zPiF6oIX2R0bXtAjimfmJS1uq98mSCwth2jK5da0T4+bIV3gYbeQuDWZ7C9ONO3WOI2gWFhd559nq8buqFkjSVlkkYIa/rldCUUaEKc1j+Mk0lzli4C4GzrTYcsfRlT1zAD5Trtgj89zzGBuWxLQ=</string>-->
     <string name="permissions_denied">The Experience needs the following permissions to enable an AR experience:</string>
     <string name="permission_rationale_text">The AR Experience needs the following permissions to enable an AR experience:</string>
     <string name="permission_rationale_title">AR Permissions</string>
@@ -20,6 +22,7 @@
     <string name="ar_intro_text8">切換前後鏡頭</string>
     <string name="ar_intro_title">AR 功能說明</string>
     <string name="unexpected_error">Unexpected error:</string>
+    <string name="save_picture">相片已儲存</string>
     <string name="activity_simple_ar_img_btn">ＡＲ辨識圖</string>
     <string name="activity_simple_ar_support_img_btn">輔助辨識圖</string>
     <string name="activity_simple_ar_scan_hint">請掃描識別圖像</string>
@@ -51,8 +54,8 @@
     <string name="description">活動說明</string>
     <string name="experience">如何體驗</string>
     <string name="date_content">2022/03/22 ~ 2022/03/25</string>
-    <string name="description_content">臺北市政府願景館延續施政理念，以「smart Taipei One City」為主體，展示智慧交通、智慧健康、智慧經濟、智慧安防、智慧教育、智慧建築、智慧環境、智慧政府等八大類型市政服務。本體驗活動藉由台北通APP結合AR技術，讓市民朋友不僅可認識北市府市政服務、與AR影像進行合影互動，也可透過LBS定位導覽展館週邊的相關市府場館唷！</string>
-    <string name="experience_content">點按「展內互動體驗」並掃描臺北市政府願景館內服務有「AR Qrcode」的圖示即可體驗相關市政服務之導覽。市府願景館入口>台北通>城市儀表板>防疫儀表板。點按「展館週邊探索」將會出現範圍內的相關招牌，點選招牌即會出現該點位相關資訊及圖示導覽唷！</string>
+    <string name="description_content">臺北市政府願景館延續施政理念，以「smart Taipei One City」為主體，展示智慧交通、智慧健康、智慧經濟、智慧安防、智慧教育、智慧建築、智慧環境、智慧政府等八大類型市政服務。本體驗活動藉由台北通APP結合AR技術，讓市民朋友不僅可認識北市府市政服務、與AR影像進行合影互動，也可透過虛擬招牌導覽展館週邊的相關市府場館唷！</string>
+    <string name="experience_content">1.於南港展覽館館內，點按「展內互動體驗」並掃描臺北市政府願景館內服務有「AR Qrcode」的圖示即可體驗相關市政服務之導覽。\n體驗項目：市府願景館入口、台北通、城市儀表板、防疫儀表板。\n2.於南港展覽館周邊，點按「展館週邊探索」將會出現範圍內的相關虛擬招牌，點選招牌即會出現該點位相關資訊及圖示導覽唷！</string>
     <string name="ar_recognize_title">展內互動體驗</string>
     <string name="ar_guide_title">展館週邊探索</string>
 </resources>

@@ -85,15 +85,13 @@ public class GeoExtension extends ArchitectViewExtension implements LocationList
     public void onLocationChanged(Location location) {
         float accuracy = location.hasAccuracy() ? location.getAccuracy() : 1000;
         Log.e("LOG", "accuracy" + accuracy);
-        if (accuracy < 15) {
-            if (location.hasAltitude()) {
-                architectView.setLocation(location.getLatitude(), location.getLongitude(), location.getAltitude(), accuracy);
-            } else {
-                architectView.setLocation(location.getLatitude(), location.getLongitude(), accuracy);
-            }
-            if (locationListenerExtension != null) {
-                locationListenerExtension.onLocationChanged(location);
-            }
+        if (location.hasAltitude()) {
+            architectView.setLocation(location.getLatitude(), location.getLongitude(), location.getAltitude(), accuracy);
+        } else {
+            architectView.setLocation(location.getLatitude(), location.getLongitude(), accuracy);
+        }
+        if (locationListenerExtension != null) {
+            locationListenerExtension.onLocationChanged(location);
         }
     }
 

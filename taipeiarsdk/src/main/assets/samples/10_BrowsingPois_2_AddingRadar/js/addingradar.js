@@ -27,9 +27,10 @@ var World = {
 	addMarker: null,
 	showPlaceNr: 0,
     model: null,
+	image: null,
 
 	locationUpdateCounter: 0,
-	updatePlacemarkDistancesEveryXLocationUpdates: 100,
+	updatePlacemarkDistancesEveryXLocationUpdates: 50,
 
 	POIData: [],
 
@@ -162,19 +163,19 @@ var World = {
             var altitude;
             if (distance > 0)
             {
-               altitude =  10*World.showPlaceNr +250;
+               altitude =  10*World.showPlaceNr +500;
             }
             if (distance > 50)
             {
-               altitude =  30*World.showPlaceNr +300;
+               altitude =  30*World.showPlaceNr +550;
             }
             if (distance > 100)
             {
-               altitude =  60*World.showPlaceNr +400;
+               altitude =  60*World.showPlaceNr +600;
             }
             if (distance > 250)
             {
-               altitude =  90*World.showPlaceNr +700;
+               altitude =  90*World.showPlaceNr +800;
             }
             if (distance > 500)
             {
@@ -182,6 +183,8 @@ var World = {
             }
             World.showPlaceNr++;
             altitude = altitude/8;
+            console.info('POIData name '+World.POIData[index].name);
+            console.info('POIData altitude '+altitude);
 
              //距離文字
              var distanceStr = (distance > 999) ?
@@ -260,31 +263,38 @@ var World = {
 //
 //		// helper used to update placemark information every now and then (e.g. every 10 location upadtes fired)
 //		World.locationUpdateCounter = (++World.locationUpdateCounter % World.updatePlacemarkDistancesEveryXLocationUpdates);
-        if (World.POIData.length == 0){
-            return;
-        }
-        console.info('World.initiallyLoadedData'+World.initiallyLoadedData);
-        console.info('World.locationUpdateCounter'+World.locationUpdateCounter);
-         if (!World.initiallyLoadedData)
-         {
-             World.refreshMarkerView();
-             World.initiallyLoadedData = true;
-         }
-         else if (World.locationUpdateCounter == 0)
-         {
-            //Update placemark distance information frequently, you max also update distances only every 10m with some more effort.
-//            World.updateDistanceToUserValues();
-
-            World.refreshMarkerView();
-         }
-
-        /* Helper used to update placemark information every now and then (e.g. every 10 location upadtes fired). */
-        World.locationUpdateCounter = (++World.locationUpdateCounter % World.updatePlacemarkDistancesEveryXLocationUpdates);
+//        if (World.POIData.length == 0){
+//            return;
+//        }
+//        console.info('World.initiallyLoadedData'+World.initiallyLoadedData);
+//        console.info('World.locationUpdateCounter'+World.locationUpdateCounter);
+//         if (!World.initiallyLoadedData)
+//         {
+//             World.refreshMarkerView();
+//             World.initiallyLoadedData = true;
+//         }
+//         else if (World.locationUpdateCounter == 0)
+//         {
+//            //Update placemark distance information frequently, you max also update distances only every 10m with some more effort.
+////            World.updateDistanceToUserValues();
+//
+//            World.refreshMarkerView();
+//         }
+//
+//        /* Helper used to update placemark information every now and then (e.g. every 10 location upadtes fired). */
+//        World.locationUpdateCounter = (++World.locationUpdateCounter % World.updatePlacemarkDistancesEveryXLocationUpdates);
 	},
 
 	createModelAtLocation: function createModelAtLocationFn(lat, lng, size, altitude, rotateY, url) {
         console.info('createModelAtLocation');
         var location = new AR.GeoLocation(lat, lng);
+
+        if(World.image){
+            if(!World.image.destroyed){
+                World.image.destroy();
+            }
+            World.image = null;
+        }
 
         if(World.model){
             if(!World.model.destroyed){
@@ -312,6 +322,37 @@ var World = {
         this.geoObject = new AR.GeoObject(location, {
             drawables: {
                 cam: [World.model],
+            },
+        });
+    },
+
+    createImageAtLocation: function createImageAtLocationFn(lat, lng, url) {
+        console.info('createImageAtLocation');
+        var location = new AR.GeoLocation(lat, lng);
+
+        if(World.image){
+            if(!World.image.destroyed){
+                World.image.destroy();
+            }
+            World.image = null;
+        }
+        if(World.model){
+            if(!World.model.destroyed){
+                World.model.destroy();
+            }
+            World.model = null;
+        }
+
+        World.image = new AR.ImageResource(url);
+        this.imageDrawable = new AR.ImageDrawable(World.image, 1.8, {
+            zOrder: 0,
+            opacity: 1.0
+        });
+
+        /* Putting it all together the location and 3D model is added to an AR.GeoObject. */
+        this.geoObject = new AR.GeoObject(location, {
+            drawables: {
+                cam: [this.imageDrawable]
             }
         });
     },
@@ -319,6 +360,13 @@ var World = {
 	// fired when user pressed maker in cam
 	onMarkerSelected: function onMarkerSelectedFn(marker) {
 		//World.currentMarker = marker;
+
+        var targetId = marker.poiData.id;
+        var markerSelectedJSON = {
+            action: "showPOIInfo",
+            id: targetId,
+        };
+        AR.platform.sendJSONObject(markerSelectedJSON);
 
 		// deselect previous marker
         if (World.currentMarker) {
@@ -338,13 +386,6 @@ var World = {
                 World.POIData[index].selected = "false"
             }
         }
-
-        var targetId = marker.poiData.id;
-        var markerSelectedJSON = {
-            action: "showPOIInfo",
-            id: targetId,
-        };
-        AR.platform.sendJSONObject(markerSelectedJSON);
 
 //		// update panel values
 //		$("#poi-detail-title").html(marker.poiData.title);

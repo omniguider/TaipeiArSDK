@@ -3,11 +3,15 @@ package com.omni.taipeiarsdk.util;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -137,12 +141,25 @@ public class ScreenshotSaverExtension extends ArchitectViewExtension implements 
         if (screenCapture != null) {
             // store screenCapture into external cache directory
             final File screenCaptureFile = new File(Environment.getExternalStorageDirectory().toString(), "screenCapture_" + System.currentTimeMillis() + ".jpg");
-
             // 1. Save bitmap to file & compress to jpeg. You may use PNG too
             try {
+                File filePath = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + File.separator + "TaipeiAR");
+                filePath.mkdirs();
+                final FileOutputStream out;
+                if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
+                    ContentResolver resolver = activity.getApplicationContext().getContentResolver();
+                    ContentValues contentValues = new ContentValues();
+                    contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, "screenCapture_" + System.currentTimeMillis() + ".jpg");
+                    contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpg");
+                    contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, "DCIM/" + "TaipeiAR");
+                    Uri imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
+                    out = (FileOutputStream) resolver.openOutputStream(imageUri);
 
-                final FileOutputStream out = new FileOutputStream(screenCaptureFile);
-                screenCapture.compress(Bitmap.CompressFormat.JPEG, 90, out);
+                } else  {
+                    out = new FileOutputStream(filePath + File.separator + "screenCapture_" + System.currentTimeMillis() + ".jpg");
+
+                }
+                screenCapture.compress(Bitmap.CompressFormat.JPEG, 100, out);
                 out.flush();
                 out.close();
 
