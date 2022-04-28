@@ -48,7 +48,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="@string/ar_guide_title"
+            android:text="@string/ar_guide"
             android:textColor="@android:color/white"
             android:textSize="@dimen/text_size_action_bar" />
     </androidx.appcompat.widget.Toolbar>

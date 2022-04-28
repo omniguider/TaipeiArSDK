@@ -10,20 +10,24 @@ import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
 import android.widget.FrameLayout
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.cardview.widget.CardView
 import androidx.core.app.ActivityCompat
+import androidx.fragment.app.Fragment
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.location.LocationListener
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.places.Places
+import com.omni.taipeiarsdk.manager.AnimationFragmentManager
 import com.omni.taipeiarsdk.model.OmniEvent
 import com.omni.taipeiarsdk.model.tpe_location.Ar
+import com.omni.taipeiarsdk.model.tpe_location.IndexPoi
 import com.omni.taipeiarsdk.tool.TaipeiArSDKText
 import com.omni.taipeiarsdk.util.*
+import com.omni.taipeiarsdk.view.theme.ThemeGuideFragment
 import com.wikitude.architect.ArchitectView
 import com.wikitude.common.permission.PermissionManager
 import org.greenrobot.eventbus.EventBus
@@ -44,6 +48,7 @@ class TaipeiArSDKActivity : AppCompatActivity(), LocationListener,
         lateinit var arContent: Ar
         lateinit var active_method: String
         lateinit var ar_open_by_poi: String
+        lateinit var mIndexPOI: Array<IndexPoi>
     }
 
     private val sampleDefinitionsPath = "samples/samples.json"
@@ -61,11 +66,22 @@ class TaipeiArSDKActivity : AppCompatActivity(), LocationListener,
     fun onEvent(event: OmniEvent) {
         when (event.type) {
             OmniEvent.TYPE_OPEN_AR_RECOGNIZE -> {
-                Log.e("LOG", "TYPE_OPEN_AR_RECOGNIZE")
                 arContent = event.obj as Ar
                 sampleData = categories!![6].samples[0] //ar_recognize
                 val intent = Intent(this@TaipeiArSDKActivity, sampleData!!.activityClass)
                 intent.putExtra(SimpleArActivity.INTENT_EXTRAS_KEY_SAMPLE, sampleData)
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                startActivity(intent)
+            }
+            OmniEvent.TYPE_OPEN_AR_GUIDE -> {
+                mIndexPOI = event.obj as Array<IndexPoi>
+                sampleData = categories!![9].samples[1] //ar_recognize
+                val intent = Intent(this@TaipeiArSDKActivity, sampleData!!.activityClass)
+                intent.putExtra(SimpleArActivity.INTENT_EXTRAS_KEY_SAMPLE, sampleData)
+                intent.putExtra(
+                    SimpleArActivity.INTENT_EXTRAS_KEY_THEME_DATA,
+                    event.obj as Array<IndexPoi>
+                )
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 startActivity(intent)
             }
@@ -91,7 +107,8 @@ class TaipeiArSDKActivity : AppCompatActivity(), LocationListener,
         categories = SampleJsonParser.getCategoriesFromJsonString(json)
         sampleData = categories!![9].samples[1] //ar_guide
 
-        findViewById<TextView>(R.id.ar_guide).setOnClickListener {
+        findViewById<CardView>(R.id.ar_guide).setOnClickListener {
+            mIndexPOI = emptyArray()
             sampleData = categories!![9].samples[1] //ar_guide
             val intent = Intent(this@TaipeiArSDKActivity, sampleData!!.activityClass)
             intent.putExtra(SimpleArActivity.INTENT_EXTRAS_KEY_SAMPLE, sampleData)
@@ -99,13 +116,17 @@ class TaipeiArSDKActivity : AppCompatActivity(), LocationListener,
             startActivity(intent)
         }
 
-        findViewById<TextView>(R.id.ar_recognize).setOnClickListener {
-            ar_open_by_poi = "false"
-            sampleData = categories!![6].samples[0] //ar_guide
-            val intent = Intent(this@TaipeiArSDKActivity, sampleData!!.activityClass)
-            intent.putExtra(SimpleArActivity.INTENT_EXTRAS_KEY_SAMPLE, sampleData)
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-            startActivity(intent)
+//        findViewById<TextView>(R.id.ar_recognize).setOnClickListener {
+//            ar_open_by_poi = "false"
+//            sampleData = categories!![6].samples[0] //ar_guide
+//            val intent = Intent(this@TaipeiArSDKActivity, sampleData!!.activityClass)
+//            intent.putExtra(SimpleArActivity.INTENT_EXTRAS_KEY_SAMPLE, sampleData)
+//            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+//            startActivity(intent)
+//        }
+
+        findViewById<CardView>(R.id.theme_guide).setOnClickListener {
+            openFragmentPage(ThemeGuideFragment.newInstance(), ThemeGuideFragment.TAG)
         }
 
         findViewById<FrameLayout>(R.id.back_fl).setOnClickListener {
@@ -280,5 +301,12 @@ class TaipeiArSDKActivity : AppCompatActivity(), LocationListener,
 
     override fun onConnectionFailed(ConnectionResult: ConnectionResult) {
         TODO("Not yet implemented")
+    }
+
+    private fun openFragmentPage(fragment: Fragment, tag: String) {
+        AnimationFragmentManager.getInstance().addFragmentPage(
+            this@TaipeiArSDKActivity,
+            R.id.activity_main_fl, fragment, tag
+        )
     }
 }

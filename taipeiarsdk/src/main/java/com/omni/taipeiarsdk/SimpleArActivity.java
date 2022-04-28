@@ -115,6 +115,7 @@ import static com.wikitude.architect.ArchitectView.CaptureScreenCallback.CAPTURE
 public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     public static final String INTENT_EXTRAS_KEY_SAMPLE = "sampleData";
+    public static final String INTENT_EXTRAS_KEY_THEME_DATA = "themeData";
     private static final String TAG = SimpleArActivity.class.getSimpleName();
 
     /**
@@ -200,7 +201,7 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
     private ShareGridAdapter adapter;
     private GridView gridView;
     private String selectPOIId;
-    private IndexFeedback mIndexFeedback;
+    private IndexPoi[] mIndexPOI;
     private IndexPoi indexPoi = null;
 
     private List<SampleCategory> categories;
@@ -300,8 +301,9 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
                 new NetworkManager.NetworkManagerListener<IndexFeedback>() {
                     @Override
                     public void onSucceed(IndexFeedback feedback) {
-                        mIndexFeedback = feedback;
-                        addPOIMarkers(feedback.getPoi());
+                        if (mIndexPOI == null)
+                            mIndexPOI = feedback.getPoi();
+                        addPOIMarkers(mIndexPOI);
                     }
 
                     @Override
@@ -312,7 +314,7 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
-                for (IndexPoi poi : mIndexFeedback.getPoi()) {
+                for (IndexPoi poi : mIndexPOI) {
                     if (poi.getName().equals(marker.getTitle())) {
                         showPOIInfo(poi.getId());
                         break;
@@ -521,6 +523,11 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
         arExperience = sampleData.getPath();
 
         Log.w("LOG", "Simple AR onCreate: " + arExperience);
+
+        if (intent.hasExtra(INTENT_EXTRAS_KEY_THEME_DATA)) {
+            mIndexPOI = (IndexPoi[]) intent.getSerializableExtra(INTENT_EXTRAS_KEY_THEME_DATA);
+            Log.e("LOG","mIndexPOI"+mIndexPOI.length);
+        }
 
         /*
          * The ArchitectStartupConfiguration is required to call architectView.onCreate.
@@ -821,7 +828,7 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
     }
 
     public void showPOIInfo(String id) {
-        for (IndexPoi poi : mIndexFeedback.getPoi()) {
+        for (IndexPoi poi : mIndexPOI) {
             if (poi.getId().equals(id)) {
                 indexPoi = poi;
                 break;

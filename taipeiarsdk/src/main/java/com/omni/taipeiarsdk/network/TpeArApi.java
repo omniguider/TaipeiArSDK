@@ -9,6 +9,7 @@ import com.android.volley.Request;
 import com.omni.taipeiarsdk.model.GetWtcFeedback;
 import com.omni.taipeiarsdk.model.UserImageFeedback;
 import com.omni.taipeiarsdk.model.tpe_location.IndexFeedback;
+import com.omni.taipeiarsdk.model.tpe_location.ThemeFeedback;
 import com.omni.taipeiarsdk.pano.ArPattenFeedback;
 import com.omni.taipeiarsdk.pano.ArPattensFeedback;
 
@@ -98,6 +99,14 @@ public class TpeArApi {
         params.put("radius", "2");
 
         NetworkManager.getInstance().addJsonRequest(context, Request.Method.GET, url, params, IndexFeedback.class, TIMEOUT, listener);
+    }
+
+    public void getTheme(Context context, NetworkManager.NetworkManagerListener<ThemeFeedback> listener) {
+        String url = NetworkManager.TPE_DOMAIN_NAME + "api/get_index";
+        Map<String, String> params = new HashMap<>();
+        params.put("type", "topic");
+
+        NetworkManager.getInstance().addJsonRequest(context, Request.Method.GET, url, params, ThemeFeedback.class, TIMEOUT, listener);
     }
 
 }

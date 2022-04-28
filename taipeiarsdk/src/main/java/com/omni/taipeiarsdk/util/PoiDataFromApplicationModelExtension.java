@@ -8,6 +8,7 @@ import android.util.Log;
 
 import com.android.volley.VolleyError;
 import com.omni.taipeiarsdk.SimpleArActivity;
+import com.omni.taipeiarsdk.TaipeiArSDKActivity;
 import com.omni.taipeiarsdk.model.tpe_location.IndexData;
 import com.omni.taipeiarsdk.model.tpe_location.IndexFeedback;
 import com.omni.taipeiarsdk.model.tpe_location.IndexPoi;
@@ -81,7 +82,10 @@ public class PoiDataFromApplicationModelExtension extends ArchitectViewExtension
         final String ATTR_CATEGORY = "category";
 
 //        topics = indexFeedback.getData().getTopic();
-        indexPois = indexFeedback.getPoi();
+        if (TaipeiArSDKActivity.mIndexPOI.length == 0)
+            indexPois = indexFeedback.getPoi();
+        else
+            indexPois = TaipeiArSDKActivity.mIndexPOI;
 
         // generates dataSize POIs
 //        for (Topic topic : topics) {
