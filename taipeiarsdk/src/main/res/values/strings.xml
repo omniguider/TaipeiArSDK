@@ -58,4 +58,8 @@
     <string name="experience_content">1.於南港展覽館館內，點按「展內互動體驗」並掃描臺北市政府願景館內服務有「AR Qrcode」的圖示即可體驗相關市政服務之導覽。\n體驗項目：市府願景館入口、台北通、城市儀表板、防疫儀表板。\n2.於南港展覽館周邊，點按「展館週邊探索」將會出現範圍內的相關虛擬招牌，點選招牌即會出現該點位相關資訊及圖示導覽唷！</string>
     <string name="ar_recognize_title">展內互動體驗</string>
     <string name="ar_guide_title">展館週邊探索</string>
+    <string name="filter">篩選</string>
+    <string name="search_hint">請輸入搜尋關鍵字</string>
+    <string name="search">搜尋</string>
+    <string name="clear_filter">清除搜尋條件</string>
 </resources>

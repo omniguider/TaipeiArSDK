@@ -34,6 +34,7 @@ import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 import java.util.*
+import kotlin.collections.ArrayList
 
 class TaipeiArSDKActivity : AppCompatActivity(), LocationListener,
     GoogleApiClient.ConnectionCallbacks,
@@ -49,6 +50,8 @@ class TaipeiArSDKActivity : AppCompatActivity(), LocationListener,
         lateinit var active_method: String
         lateinit var ar_open_by_poi: String
         lateinit var mIndexPOI: Array<IndexPoi>
+        lateinit var filterKeyword: ArrayList<String>
+        lateinit var filterKeywordCopy: ArrayList<String>
     }
 
     private val sampleDefinitionsPath = "samples/samples.json"
@@ -98,6 +101,8 @@ class TaipeiArSDKActivity : AppCompatActivity(), LocationListener,
         mEventBus!!.register(this)
 
         ar_open_by_poi = "false"
+        filterKeyword = ArrayList()
+        filterKeywordCopy = ArrayList()
 
         val json: String = SampleJsonParser.loadStringFromAssets(
             this,

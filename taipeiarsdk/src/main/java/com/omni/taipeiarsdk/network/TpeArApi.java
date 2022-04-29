@@ -8,6 +8,7 @@ import android.util.Log;
 import com.android.volley.Request;
 import com.omni.taipeiarsdk.model.GetWtcFeedback;
 import com.omni.taipeiarsdk.model.UserImageFeedback;
+import com.omni.taipeiarsdk.model.tpe_location.CategoryFeedback;
 import com.omni.taipeiarsdk.model.tpe_location.IndexFeedback;
 import com.omni.taipeiarsdk.model.tpe_location.ThemeFeedback;
 import com.omni.taipeiarsdk.pano.ArPattenFeedback;
@@ -107,6 +108,13 @@ public class TpeArApi {
         params.put("type", "topic");
 
         NetworkManager.getInstance().addJsonRequest(context, Request.Method.GET, url, params, ThemeFeedback.class, TIMEOUT, listener);
+    }
+
+    public void getThemeCategory(Context context, NetworkManager.NetworkManagerListener<CategoryFeedback> listener) {
+        String url = NetworkManager.TPE_DOMAIN_NAME + "api/get_topic_category";
+        Map<String, String> params = new HashMap<>();
+
+        NetworkManager.getInstance().addJsonRequest(context, Request.Method.GET, url, params, CategoryFeedback.class, TIMEOUT, listener);
     }
 
 }

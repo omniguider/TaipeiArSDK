@@ -30,8 +30,8 @@ public class ThemeGuideAdapter extends RecyclerView.Adapter<ThemeGuideAdapter.Vi
         mThemeData = data;
     }
 
-    public void updateAdapter(List<ThemeData> infos) {
-        mThemeData = infos;
+    public void updateAdapter(List<ThemeData> data) {
+        mThemeData = data;
         notifyDataSetChanged();
     }
 
