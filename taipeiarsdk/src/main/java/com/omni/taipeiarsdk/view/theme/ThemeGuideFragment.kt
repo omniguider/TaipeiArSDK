@@ -2,10 +2,18 @@ package com.omni.taipeiarsdk.view.theme
 
 import android.content.Context
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
+import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -29,21 +37,30 @@ class ThemeGuideFragment : Fragment() {
     private var mEventBus: EventBus? = null
     private var mThemeData: ArrayList<ThemeData>? = null
     private var mThemeFilterData: ArrayList<ThemeData>? = null
+    private var mThemeSearchData: ArrayList<ThemeData>? = null
+    private var searchEdt: EditText? = null
+    private var mSearchText: String? = ""
+    private var filterCount: TextView? = null
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onEvent(event: OmniEvent) {
         when (event.type) {
             OmniEvent.TYPE_SEARCH_FILTER -> {
                 if (filterKeyword.isEmpty()) {
-                    mAdapter!!.updateAdapter(mThemeData)
+                    filterCount!!.visibility = View.GONE
+                    mThemeFilterData = ArrayList()
+                    mThemeFilterData!!.addAll(mThemeData!!)
+                    doSearchPOI(mSearchText)
                 } else {
+                    filterCount!!.visibility = View.VISIBLE
+                    filterCount!!.text = filterKeyword.size.toString()
                     mThemeFilterData = ArrayList()
                     for (item in mThemeData!!) {
                         if (filterKeyword.contains(item.category.title)) {
                             mThemeFilterData!!.add(item)
                         }
                     }
-                    mAdapter!!.updateAdapter(mThemeFilterData)
+                    doSearchPOI(mSearchText)
                 }
             }
         }
@@ -92,6 +109,9 @@ class ThemeGuideFragment : Fragment() {
                         )
                     }
                     themeGuideRV!!.adapter = mAdapter
+
+                    mThemeFilterData = ArrayList()
+                    mThemeFilterData!!.addAll(mThemeData!!)
                 }
 
                 override fun onFail(error: VolleyError?, shouldRetry: Boolean) {
@@ -106,7 +126,55 @@ class ThemeGuideFragment : Fragment() {
                 )
             }
 
+        searchEdt = view.findViewById(R.id.keyword_search)
+        val searchBtn = view.findViewById<FrameLayout>(R.id.keyword_search_btn)
+        searchBtn.setOnClickListener {
+            val searchText = searchEdt!!.text.toString()
+            if (searchText.isNotEmpty()) {
+                mSearchText = searchText
+                val imm =
+                    requireActivity().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.hideSoftInputFromWindow(requireActivity().currentFocus?.windowToken, 0)
+                doSearchPOI(searchText)
+            }
+        }
+        searchEdt!!.setOnEditorActionListener(TextView.OnEditorActionListener { v, actionId, event ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                val searchText = searchEdt!!.text.toString()
+                mSearchText = searchText
+                val imm =
+                    requireActivity().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.hideSoftInputFromWindow(requireActivity().currentFocus?.windowToken, 0)
+                doSearchPOI(searchText)
+                return@OnEditorActionListener true
+            }
+            false
+        })
+        searchEdt!!.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                doSearchPOI(s.toString())
+            }
+        })
+
+        filterCount = view.findViewById(R.id.filter_cnt)
+
         return view
+    }
+
+    private fun doSearchPOI(keyword: String?) {
+        mThemeSearchData = ArrayList()
+        for (item in mThemeFilterData!!) {
+            if (item.name.contains(keyword!!)) {
+                mThemeSearchData!!.add(item)
+            }
+        }
+        mAdapter!!.updateAdapter(mThemeSearchData)
     }
 
     companion object {

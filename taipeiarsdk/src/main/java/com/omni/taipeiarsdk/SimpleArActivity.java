@@ -116,6 +116,7 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
 
     public static final String INTENT_EXTRAS_KEY_SAMPLE = "sampleData";
     public static final String INTENT_EXTRAS_KEY_THEME_DATA = "themeData";
+    public static final String INTENT_EXTRAS_KEY_THEME_TITLE = "themeTitle";
     private static final String TAG = SimpleArActivity.class.getSimpleName();
 
     /**
@@ -526,7 +527,7 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
 
         if (intent.hasExtra(INTENT_EXTRAS_KEY_THEME_DATA)) {
             mIndexPOI = (IndexPoi[]) intent.getSerializableExtra(INTENT_EXTRAS_KEY_THEME_DATA);
-            Log.e("LOG","mIndexPOI"+mIndexPOI.length);
+            Log.e("LOG", "mIndexPOI" + mIndexPOI.length);
         }
 
         /*
@@ -636,6 +637,10 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
 
         back_fl.setOnClickListener(mOnClickListener);
         intro.setOnClickListener(mOnClickListener);
+
+        if (intent.hasExtra(INTENT_EXTRAS_KEY_THEME_TITLE)) {
+            title.setText((CharSequence) intent.getSerializableExtra(INTENT_EXTRAS_KEY_THEME_TITLE));
+        }
 
         mMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.activity_simple_ar_map);
         if (!arExperience.contains("10_BrowsingPois_2_AddingRadar")) {

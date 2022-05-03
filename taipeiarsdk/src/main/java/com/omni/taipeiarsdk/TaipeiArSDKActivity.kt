@@ -52,6 +52,7 @@ class TaipeiArSDKActivity : AppCompatActivity(), LocationListener,
         lateinit var mIndexPOI: Array<IndexPoi>
         lateinit var filterKeyword: ArrayList<String>
         lateinit var filterKeywordCopy: ArrayList<String>
+        lateinit var themeTitle: String
     }
 
     private val sampleDefinitionsPath = "samples/samples.json"
@@ -78,12 +79,16 @@ class TaipeiArSDKActivity : AppCompatActivity(), LocationListener,
             }
             OmniEvent.TYPE_OPEN_AR_GUIDE -> {
                 mIndexPOI = event.obj as Array<IndexPoi>
-                sampleData = categories!![9].samples[1] //ar_recognize
+                sampleData = categories!![9].samples[1] //ar_guide
                 val intent = Intent(this@TaipeiArSDKActivity, sampleData!!.activityClass)
                 intent.putExtra(SimpleArActivity.INTENT_EXTRAS_KEY_SAMPLE, sampleData)
                 intent.putExtra(
                     SimpleArActivity.INTENT_EXTRAS_KEY_THEME_DATA,
                     event.obj as Array<IndexPoi>
+                )
+                intent.putExtra(
+                    SimpleArActivity.INTENT_EXTRAS_KEY_THEME_TITLE,
+                    themeTitle
                 )
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 startActivity(intent)

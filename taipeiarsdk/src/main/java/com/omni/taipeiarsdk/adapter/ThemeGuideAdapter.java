@@ -20,6 +20,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+import static com.omni.taipeiarsdk.TaipeiArSDKActivity.themeTitle;
+
 public class ThemeGuideAdapter extends RecyclerView.Adapter<ThemeGuideAdapter.ViewHolder> {
 
     private final Context mContext;
@@ -58,6 +60,7 @@ public class ThemeGuideAdapter extends RecyclerView.Adapter<ThemeGuideAdapter.Vi
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                themeTitle = data.getName();
                 EventBus.getDefault().post(new OmniEvent(OmniEvent.TYPE_OPEN_AR_GUIDE, data.getPoi()));
             }
         });
