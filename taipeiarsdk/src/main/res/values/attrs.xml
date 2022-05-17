@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="CircleNetworkImageView">
+        <attr name="civ_border_width" format="integer" />
+        <attr name="civ_border_color" format="reference" />
+        <attr name="civ_border_overlay" format="boolean" />
+    </declare-styleable>
+
+    <declare-styleable name="OmniViewPager">
+        <attr name="slide_paging_enabled" format="boolean" />
+    </declare-styleable>
+
+    <declare-styleable name="OmniIconItem">
+        <attr name="icon_title_text_color" format="reference" />
+        <attr name="icon_title_text_size" format="dimension" />
+        <attr name="icon_title_text" format="reference" />
+        <attr name="icon_src" format="reference" />
+    </declare-styleable>
+
+    <declare-styleable name="OmniUserOptionItem">
+        <attr name="title_text_color" format="reference" />
+        <attr name="title_text_size" format="dimension" />
+        <attr name="title_text" format="reference" />
+        <attr name="notice_visible" format="boolean" />
+        <!--<attr name="drawable_src" format="reference" />-->
+    </declare-styleable>
+
+    <attr format="dimension" name="top_left_corner_radius"/>
+    <attr format="dimension" name="top_right_corner_radius"/>
+    <attr format="dimension" name="bottom_right_corner_radius"/>
+    <attr format="dimension" name="bottom_left_corner_radius"/>
+</resources>

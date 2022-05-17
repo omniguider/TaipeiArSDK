@@ -27,6 +27,7 @@ import com.omni.taipeiarsdk.model.tpe_location.Ar
 import com.omni.taipeiarsdk.model.tpe_location.IndexPoi
 import com.omni.taipeiarsdk.tool.TaipeiArSDKText
 import com.omni.taipeiarsdk.util.*
+import com.omni.taipeiarsdk.view.mission.MissionFragment
 import com.omni.taipeiarsdk.view.theme.ThemeGuideFragment
 import com.wikitude.architect.ArchitectView
 import com.wikitude.common.permission.PermissionManager
@@ -137,6 +138,10 @@ class TaipeiArSDKActivity : AppCompatActivity(), LocationListener,
 
         findViewById<CardView>(R.id.theme_guide).setOnClickListener {
             openFragmentPage(ThemeGuideFragment.newInstance(), ThemeGuideFragment.TAG)
+        }
+
+        findViewById<CardView>(R.id.mission).setOnClickListener {
+            openFragmentPage(MissionFragment.newInstance(), MissionFragment.TAG)
         }
 
         findViewById<FrameLayout>(R.id.back_fl).setOnClickListener {

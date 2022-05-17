@@ -5,8 +5,8 @@
 
     <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyAEbX2Qdl1QeoJcexJAgn6EnJy_ypBWWjc</string>
     <string name="wikitude_license_key">Q1hADLrK5HMutDp281ojzEeqbuLgrwEY6XYclpEJ16DErRUrypL4Z01/Drwj+EniL6QMUy4df5qmPb6Uh51NwRaVkJqiL9k67+4oMC1Jdl7VX+D2w2APeiEhSLQvE8MXALGeaALeyYKzn8OYuN1YPOvmA/L6KllbMMdCIJqBthZTYWx0ZWRfX3zueRDETTlRpMvXE8bjuYuVPiXrV0DrF+b/wfrajuxj16MDvgeeUdFeAXt9uFILB5iVQWmB5+FJ7iJGTR7uiTKivE+0r02JbuzDzyT55S2xqPrYv8iqQJ7MsTCm4PkaJx8t+AzUU/koQrcOPtdZylJtc9TWrqVcf3LcApwMpnwgmDCxY1P5DDXP5aLpmXwNp5Q/V/6cUgMZtamlQxUAEOIK0ISCYx9NWoZMEE5retyAq7T/EwfFEEM4u3wmw13DJThzfKsXrCsO6zxcj5n/gvsb6dhRCOY/I8x5qiPLolDJbyH6S+JXo+70vaHnic8y9Hlcciga3FuI4KQO7DfsSNkGoQs/2pOQ1K4BFu/fqZDNtsNQWRFaj/E2rz7VwzHUjjqVWxFoa5s0nYtLsBNC4p2Jy25R9FVQT/qHgvG5hU2t3PHLI7il+f8L26TayONYgzt3dMdOPVsbre+k1GR1hPugNagwG8Yc/TPEpgxF4ZGTGidw97Pbg8bE6WXzrRqGxGt0kK+jzeGebBWazLKIFL9ALaUYvV0Xd8PDJu/ZQoMj+HEyqVJYpigWkY1poE65wyh9dlwLi8veYPYtbK1pTuq093j71udD7GfNDWTaM9yVbHAEebGV0noMituau20J8w37kKP1KhOhlIkdr8JGDG4VAxekZYvosWTqjWegpMzm9xnSTT9RQ4w=</string>
-<!--    test-->
-<!--    <string name="wikitude_license_key">aidAPdewpd7asNvbry/FtR8/PDFO7Wg9zxgszwjhHOs7q6+HpFNZtknkZzaTxxtEt2nwow4KbDU220BRIaR82ImvWl0mQmhPZglQtTg9w/Pl1/fx/VkOIIhLU1rb8zwMa95MgOIyN6bUZywx3mkkTHM0rvd+sEvk8baQDzmaewVTYWx0ZWRfXxwbGnVg7IJARfA5830PASYBd1j+6BCrYBMEjkQ/cpxnA9x5JUZAVfGmu2YlVDVCqEMATdsQbMQL/8l9Ufe/9QurYzX58oEye7UvfBwW9UJg5d/L/ihFIvIDs2n2q4987z1TmjYH6pOfIGS3whTEgIcOqc1ZGHFqeSrniNhlihRnbIk1eRJBrbHe//tC9gaDDOcD2vSQqKBPVJZEJH1qfDAG5kEX1ISwcYUCp2Nxd4K0efyvRhWcf7xV7xQbB6aNUJlGFXV00xTkvN8vG9m73vbNxVXV0A6WjfMJrQxQ4H087tPU/fwL6D0lxYS52qB8NPTWQWVmlUMj9zetOLm0LGukb108QNhqceb1v1jRSo+uGDD3r0vhgmDCErcdo/D+31fgD6J1PDfhKHWibPqip2J4kpibnuuJon8QU4USz1wR3qn3IdBypRPaVRm4WBSAQRjMncAkNwwsrhfn5O98j8EmLqwRKmx5wopgXfrmEvhubGg4fInoYMECvGO36ZvaPpdC3pN+/b4UAAdzxNMI3+KmzITkH7PPSu4zPiF6oIX2R0bXtAjimfmJS1uq98mSCwth2jK5da0T4+bIV3gYbeQuDWZ7C9ONO3WOI2gWFhd559nq8buqFkjSVlkkYIa/rldCUUaEKc1j+Mk0lzli4C4GzrTYcsfRlT1zAD5Trtgj89zzGBuWxLQ=</string>-->
+    <!--    test-->
+    <!--    <string name="wikitude_license_key">aidAPdewpd7asNvbry/FtR8/PDFO7Wg9zxgszwjhHOs7q6+HpFNZtknkZzaTxxtEt2nwow4KbDU220BRIaR82ImvWl0mQmhPZglQtTg9w/Pl1/fx/VkOIIhLU1rb8zwMa95MgOIyN6bUZywx3mkkTHM0rvd+sEvk8baQDzmaewVTYWx0ZWRfXxwbGnVg7IJARfA5830PASYBd1j+6BCrYBMEjkQ/cpxnA9x5JUZAVfGmu2YlVDVCqEMATdsQbMQL/8l9Ufe/9QurYzX58oEye7UvfBwW9UJg5d/L/ihFIvIDs2n2q4987z1TmjYH6pOfIGS3whTEgIcOqc1ZGHFqeSrniNhlihRnbIk1eRJBrbHe//tC9gaDDOcD2vSQqKBPVJZEJH1qfDAG5kEX1ISwcYUCp2Nxd4K0efyvRhWcf7xV7xQbB6aNUJlGFXV00xTkvN8vG9m73vbNxVXV0A6WjfMJrQxQ4H087tPU/fwL6D0lxYS52qB8NPTWQWVmlUMj9zetOLm0LGukb108QNhqceb1v1jRSo+uGDD3r0vhgmDCErcdo/D+31fgD6J1PDfhKHWibPqip2J4kpibnuuJon8QU4USz1wR3qn3IdBypRPaVRm4WBSAQRjMncAkNwwsrhfn5O98j8EmLqwRKmx5wopgXfrmEvhubGg4fInoYMECvGO36ZvaPpdC3pN+/b4UAAdzxNMI3+KmzITkH7PPSu4zPiF6oIX2R0bXtAjimfmJS1uq98mSCwth2jK5da0T4+bIV3gYbeQuDWZ7C9ONO3WOI2gWFhd559nq8buqFkjSVlkkYIa/rldCUUaEKc1j+Mk0lzli4C4GzrTYcsfRlT1zAD5Trtgj89zzGBuWxLQ=</string>-->
     <string name="permissions_denied">The Experience needs the following permissions to enable an AR experience:</string>
     <string name="permission_rationale_text">The AR Experience needs the following permissions to enable an AR experience:</string>
     <string name="permission_rationale_title">AR Permissions</string>
@@ -62,4 +62,9 @@
     <string name="search_hint">請輸入搜尋關鍵字</string>
     <string name="search">搜尋</string>
     <string name="clear_filter">清除搜尋條件</string>
+    <string name="info_pager_title_mission">任務</string>
+    <string name="info_pager_title_reward">獎勵</string>
+    <string name="clear">清除</string>
+    <string name="start_date">開始日期</string>
+    <string name="end_date">結束日期</string>
 </resources>
