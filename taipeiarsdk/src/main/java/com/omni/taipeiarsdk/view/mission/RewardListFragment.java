@@ -2,10 +2,12 @@ package com.omni.taipeiarsdk.view.mission;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.fragment.app.Fragment;
@@ -13,8 +15,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.NetworkImageView;
 import com.omni.taipeiarsdk.R;
 import com.omni.taipeiarsdk.TaipeiArSDKActivity;
+import com.omni.taipeiarsdk.model.mission.MissionData;
+import com.omni.taipeiarsdk.model.mission.RewardData;
 import com.omni.taipeiarsdk.model.mission.RewardFeedback;
 import com.omni.taipeiarsdk.network.NetworkManager;
 import com.omni.taipeiarsdk.network.TpeArApi;
@@ -33,6 +38,8 @@ public class RewardListFragment extends Fragment {
     public static String describe = "";
     public static int reward_num = 0;
     public static RewardFeedback mRewardFeedback;
+    private LinearLayout emptyLayout;
+    private ArrayList<RewardData> mData;
 
     public static RewardListFragment newInstance() {
         RewardListFragment fragment = new RewardListFragment();
@@ -55,9 +62,11 @@ public class RewardListFragment extends Fragment {
             mLinearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
             mRecyclerView.setLayoutManager(mLinearLayoutManager);
 
+            emptyLayout = mView.findViewById(R.id.empty_layout);
+
             userId = TaipeiArSDKActivity.userId;
             if (userId == null || userId.length() == 0) {
-                userId = "1"; // not login
+                userId = "Hf1242aaa6"; // not login
             }
 
             TpeArApi.getInstance().getReward(this.getActivity(),
@@ -68,14 +77,17 @@ public class RewardListFragment extends Fragment {
                         public void onSucceed(RewardFeedback feedback) {
                             mRewardFeedback = feedback;
                             reward_num = feedback.getData().length;
-                            ArrayList<String> myData = new ArrayList<>();
+                            ArrayList<RewardData> myData = new ArrayList<>();
                             for (int i = 0; i < reward_num; i++) {
                                 if (feedback.getData()[i].getIs_finish()) {
-                                    myData.add(feedback.getData()[i].getM_title());
+                                    myData.add(feedback.getData()[i]);
                                 }
                             }
                             RecyclerViewAdapter mRecyclerViewAdapter = new RecyclerViewAdapter(myData);
                             mRecyclerView.setAdapter(mRecyclerViewAdapter);
+                            if (reward_num != 0) {
+                                emptyLayout.setVisibility(View.GONE);
+                            }
                         }
 
                         @Override
@@ -87,19 +99,23 @@ public class RewardListFragment extends Fragment {
     }
 
     public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder> {
-        private List<String> mData;
 
         public class ViewHolder extends RecyclerView.ViewHolder {
-            public TextView mTextView;
+            public TextView title;
+            public TextView date;
+            public NetworkImageView img;
 
             public ViewHolder(View v) {
                 super(v);
-                this.mTextView = v.findViewById(R.id.reward_title);
+                this.title = v.findViewById(R.id.reward_title);
+                this.date = v.findViewById(R.id.reward_date);
+                this.img = v.findViewById(R.id.reward_img);
             }
         }
 
-        public RecyclerViewAdapter(List<String> data) {
-            mData = data;
+        public RecyclerViewAdapter(ArrayList<RewardData> data) {
+            mData = new ArrayList<>();
+            mData.addAll(data);
         }
 
         @Override
@@ -112,12 +128,15 @@ public class RewardListFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(ViewHolder holder, final int position) {
-            holder.mTextView.setText(mData.get(position));
+            holder.title.setText(mData.get(position).getRW_title());
+
             final int pos = position;
+            NetworkManager.getInstance().setNetworkImage(getContext(),
+                    holder.img, mData.get(position).getM_img());
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    String mTitle = mData.get(position);
+                    String mTitle = mData.get(position).getM_title();
                     for (int i = 0; i < reward_num; i++) {
                         if (mRewardFeedback.getData()[i].getM_title().equals(mTitle)) {
                             missionId = mRewardFeedback.getData()[i].getM_id();
@@ -140,5 +159,4 @@ public class RewardListFragment extends Fragment {
             return mData.size();
         }
     }
-
 }

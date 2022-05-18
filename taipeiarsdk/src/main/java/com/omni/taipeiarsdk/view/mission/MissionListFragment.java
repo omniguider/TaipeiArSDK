@@ -70,7 +70,7 @@ public class MissionListFragment extends Fragment {
 
             userId = TaipeiArSDKActivity.userId;
             if (userId == null || userId.length() == 0) {
-                userId = "1"; // not login
+                userId = "Hf1242aaa6"; // not login
             }
 
             TpeArApi.getInstance().getMission(this.getActivity(),

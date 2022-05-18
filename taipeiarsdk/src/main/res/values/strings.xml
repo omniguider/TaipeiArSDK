@@ -67,4 +67,7 @@
     <string name="clear">清除</string>
     <string name="start_date">開始日期</string>
     <string name="end_date">結束日期</string>
+    <string name="no_reward_hint">尚無獎勵，請登入或執行任務</string>
+    <string name="receive_reward">領取獎勵</string>
+    <string name="received">已領取</string>
 </resources>
