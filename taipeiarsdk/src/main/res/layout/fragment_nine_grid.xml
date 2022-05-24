@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/container_nine_grid_navi"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_alignParentBottom="true"
+    android:background="@color/gray_f5"
+    android:clickable="true"
+    android:focusable="true">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@mipmap/bg_nine_grid">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/nine_grid_action_bar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/colorPrimary">
+
+            <FrameLayout
+                android:id="@+id/back_fl"
+                android:layout_width="@dimen/action_bar_btn_width"
+                android:layout_height="match_parent"
+                android:layout_gravity="start">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center_vertical"
+                    android:adjustViewBounds="true"
+                    android:gravity="center"
+                    android:src="@mipmap/button_back" />
+            </FrameLayout>
+
+            <TextView
+                android:id="@+id/fragment_mission_tv_action_bar_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="@string/mission"
+                android:textColor="@android:color/white"
+                android:textSize="@dimen/text_size_action_bar" />
+        </androidx.appcompat.widget.Toolbar>
+
+        <LinearLayout
+            android:id="@+id/mission_info"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:layout_below="@id/nine_grid_action_bar"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/mission_title_tv"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:paddingTop="20dp"
+                android:textColor="@color/colorPrimary"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <View
+                android:layout_width="60dp"
+                android:layout_height="2dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:background="@color/colorPrimary" />
+
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="6dp">
+
+                <TextView
+                    android:id="@+id/mission_desc_tv"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp"
+                    android:textColor="@color/gray_33"
+                    android:textSize="16sp" />
+            </ScrollView>
+
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/grid_rv"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/nine_grid_btn"
+            android:layout_below="@+id/mission_info"
+            android:layout_alignParentStart="true"
+            android:padding="8dp"
+            android:scrollbars="vertical" />
+
+        <LinearLayout
+            android:id="@+id/nine_grid_btn"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_alignParentBottom="true"
+            android:layout_gravity="bottom"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="24dp"
+            android:layout_marginBottom="16dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/already_collect_rewards_btn"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@drawable/solid_round_rectangle_gray_cc"
+                android:gravity="center"
+                android:scaleType="fitXY"
+                android:text="@string/receive_reward"
+                android:textColor="@android:color/white"
+                android:textSize="@dimen/text_size_action_bar"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/collect_rewards_btn"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@drawable/solid_round_rectangle_gray_cc"
+                android:gravity="center"
+                android:scaleType="fitXY"
+                android:text="@string/received"
+                android:textColor="@android:color/white"
+                android:textSize="@dimen/text_size_action_bar"
+                android:visibility="gone" />
+        </LinearLayout>
+    </RelativeLayout>
+</FrameLayout>

@@ -17,6 +17,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.NetworkImageView;
 import com.omni.taipeiarsdk.R;
 import com.omni.taipeiarsdk.TaipeiArSDKActivity;
+import com.omni.taipeiarsdk.manager.AnimationFragmentManager;
 import com.omni.taipeiarsdk.model.mission.MissionData;
 import com.omni.taipeiarsdk.model.mission.MissionFeedback;
 import com.omni.taipeiarsdk.network.NetworkManager;
@@ -35,12 +36,12 @@ public class MissionListFragment extends Fragment {
     private View mView;
     private RecyclerView mRecyclerView;
     public static String userId = "";
-    public static String missionId = "";
-    public static String title = "";
-    public static String describe = "";
-    public static String verify_code = "";
-    public static int mission_num = 0;
-    public static MissionFeedback mMissionFeedback;
+    private String missionId = "";
+    private String title = "";
+    private String describe = "";
+    private String verify_code = "";
+    private int mission_num = 0;
+    private MissionFeedback mMissionFeedback;
     private ArrayList<MissionData> allData;
     private ArrayList<MissionData> mData;
     private Date startDate;
@@ -224,12 +225,9 @@ public class MissionListFragment extends Fragment {
                     title = mMissionFeedback.getData()[pos].getM_title();
                     describe = mMissionFeedback.getData()[pos].getM_describe();
                     verify_code = mMissionFeedback.getData()[pos].getVerify_code();
-//                        Intent toMissionActivity = new Intent(getActivity(), MissionActivity.class);
-//                        toMissionActivity.putExtra("missionID", missionId);
-//                        toMissionActivity.putExtra("title", title);
-//                        toMissionActivity.putExtra("describe", describe);
-//                        toMissionActivity.putExtra("verify_code", verify_code);
-//                        startActivity(toMissionActivity);
+
+                    openFragmentPage(NineGridFragment.Companion.newInstance(missionId,
+                            title, describe, verify_code), NineGridFragment.TAG);
                 }
             });
         }
@@ -240,4 +238,8 @@ public class MissionListFragment extends Fragment {
         }
     }
 
+    private void openFragmentPage(Fragment fragment, String tag) {
+        AnimationFragmentManager.getInstance().addFragmentPage(getActivity(),
+                R.id.activity_main_fl, fragment, tag);
+    }
 }

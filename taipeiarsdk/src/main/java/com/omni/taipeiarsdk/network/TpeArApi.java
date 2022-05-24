@@ -9,6 +9,7 @@ import com.android.volley.Request;
 import com.omni.taipeiarsdk.model.GetWtcFeedback;
 import com.omni.taipeiarsdk.model.UserImageFeedback;
 import com.omni.taipeiarsdk.model.mission.MissionFeedback;
+import com.omni.taipeiarsdk.model.mission.MissionGridFeedback;
 import com.omni.taipeiarsdk.model.mission.RewardFeedback;
 import com.omni.taipeiarsdk.model.tpe_location.CategoryFeedback;
 import com.omni.taipeiarsdk.model.tpe_location.IndexFeedback;
@@ -135,6 +136,15 @@ public class TpeArApi {
         params.put("u_id", u_id);
 
         NetworkManager.getInstance().addJsonRequest(context, Request.Method.GET, url, params, RewardFeedback.class, TIMEOUT, listener);
+    }
+
+    public void getMissionGrid(Context context, String m_id, String u_id, NetworkManager.NetworkManagerListener<MissionGridFeedback> listener) {
+        String url = NetworkManager.TPE_DOMAIN_NAME + "api/get_nine_grid";
+        Map<String, String> params = new HashMap<>();
+        params.put("m_id", m_id);
+        params.put("u_id", u_id);
+
+        NetworkManager.getInstance().addJsonRequest(context, Request.Method.GET, url, params, MissionGridFeedback.class, TIMEOUT, listener);
     }
 
 }
