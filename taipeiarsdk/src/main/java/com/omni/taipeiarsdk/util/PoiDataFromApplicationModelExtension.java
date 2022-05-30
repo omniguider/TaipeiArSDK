@@ -80,6 +80,7 @@ public class PoiDataFromApplicationModelExtension extends ArchitectViewExtension
         final String ATTR_ALTITUDE = "altitude";
         final String ATTR_SELECTED = "selected";
         final String ATTR_CATEGORY = "category";
+        final String ATTR_FINISHED = "gridFinished";
 
 //        topics = indexFeedback.getData().getTopic();
         if (TaipeiArSDKActivity.mIndexPOI.length == 0)
@@ -113,6 +114,7 @@ public class PoiDataFromApplicationModelExtension extends ArchitectViewExtension
             poiInformation.put(ATTR_NAME, indexPoi.getName());
             poiInformation.put(ATTR_DESCRIPTION, "");
             poiInformation.put(ATTR_CATEGORY, indexPoi.getCategory().getTitle());
+            poiInformation.put(ATTR_FINISHED, indexPoi.getGridFinished());
 
             poiInformation.put(ATTR_LATITUDE, String.valueOf(indexPoi.getLat()));
             poiInformation.put(ATTR_LONGITUDE, String.valueOf(indexPoi.getLng()));

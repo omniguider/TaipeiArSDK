@@ -115,7 +115,7 @@
                 android:background="@drawable/solid_round_rectangle_gray_cc"
                 android:gravity="center"
                 android:scaleType="fitXY"
-                android:text="@string/receive_reward"
+                android:text="@string/received"
                 android:textColor="@android:color/white"
                 android:textSize="@dimen/text_size_action_bar"
                 android:visibility="gone" />
@@ -124,10 +124,10 @@
                 android:id="@+id/collect_rewards_btn"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
-                android:background="@drawable/solid_round_rectangle_gray_cc"
+                android:background="@drawable/solid_round_rectangle_green_green_stroke"
                 android:gravity="center"
                 android:scaleType="fitXY"
-                android:text="@string/received"
+                android:text="@string/receive_reward"
                 android:textColor="@android:color/white"
                 android:textSize="@dimen/text_size_action_bar"
                 android:visibility="gone" />

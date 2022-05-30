@@ -2,6 +2,7 @@ package com.omni.taipeiarsdk.view.mission
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,9 +10,14 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.android.volley.toolbox.NetworkImageView
 import com.omni.taipeiarsdk.R
+import com.omni.taipeiarsdk.TaipeiArSDKActivity
+import com.omni.taipeiarsdk.TaipeiArSDKActivity.Companion.currentNineGridData
 import com.omni.taipeiarsdk.manager.AnimationFragmentManager
+import com.omni.taipeiarsdk.model.OmniEvent
 import com.omni.taipeiarsdk.model.mission.GridData
+import com.omni.taipeiarsdk.model.tpe_location.IndexPoi
 import com.omni.taipeiarsdk.network.NetworkManager
+import org.greenrobot.eventbus.EventBus
 
 class GridDescFragment : Fragment() {
     private var mContext: Context? = null
@@ -62,6 +68,15 @@ class GridDescFragment : Fragment() {
         NetworkManager.getInstance().setNetworkImage(mContext, pic, gridData!!.poi.image)
 
         startMissionBtn = mView.findViewById(R.id.start_mission_btn)
+        startMissionBtn!!.setOnClickListener {
+            TaipeiArSDKActivity.missionTitle = currentNineGridData.mission_title
+            TaipeiArSDKActivity.ng_id = gridData!!.id
+            var indexPoi: ArrayList<IndexPoi> = ArrayList()
+            for (item in currentNineGridData.nine_grid) {
+                indexPoi.add(item.poi)
+            }
+            EventBus.getDefault().post(OmniEvent(OmniEvent.TYPE_OPEN_AR_MISSION, indexPoi.toTypedArray()))
+        }
 
         return mView
     }

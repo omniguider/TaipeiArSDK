@@ -10,4 +10,8 @@ public class ArTrigger implements Serializable {
     public String getActive_method() {
         return active_method;
     }
+
+    public String getDistance() {
+        return distance;
+    }
 }

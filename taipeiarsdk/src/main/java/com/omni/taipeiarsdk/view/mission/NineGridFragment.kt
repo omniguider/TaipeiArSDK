@@ -1,8 +1,13 @@
 package com.omni.taipeiarsdk.view.mission
 
+import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.content.Context
+import android.graphics.Color
 import android.graphics.Rect
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.util.TypedValue
 import android.view.LayoutInflater
@@ -18,28 +23,46 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ItemDecoration
 import com.android.volley.VolleyError
 import com.omni.taipeiarsdk.R
+import com.omni.taipeiarsdk.TaipeiArSDKActivity.Companion.currentNineGridData
+import com.omni.taipeiarsdk.TaipeiArSDKActivity.Companion.userId
 import com.omni.taipeiarsdk.manager.AnimationFragmentManager
+import com.omni.taipeiarsdk.model.OmniEvent
 import com.omni.taipeiarsdk.model.mission.GridData
 import com.omni.taipeiarsdk.model.mission.MissionGridData
 import com.omni.taipeiarsdk.model.mission.MissionGridFeedback
+import com.omni.taipeiarsdk.model.mission.MissionRewardFeedback
 import com.omni.taipeiarsdk.network.NetworkManager
 import com.omni.taipeiarsdk.network.TpeArApi
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 import kotlin.math.roundToInt
 
 class NineGridFragment : Fragment() {
+    private var mEventBus: EventBus? = null
     private var mContext: Context? = null
     private var missionId: String? = null
     private var title: String? = null
     private var describe: String? = null
     private var verify_code: String? = null
 
-    private var userId = ""
     private var myNineGridData: MissionGridData? = null
     private var getRewardBtn: TextView? = null
     private var getRewardAlreadyBtn: TextView? = null
     private var mList: ArrayList<GridData>? = null
     private var mAdapter: NineGridAdapter? = null
     private var recyclerView: RecyclerView? = null
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onEvent(event: OmniEvent) {
+        when (event.type) {
+            OmniEvent.TYPE_MISSION_COMPLETE -> {
+                EventBus.getDefault()
+                    .post(OmniEvent(OmniEvent.TYPE_REWARD_COMPLETE, ""))
+                makePageDataReq()
+            }
+        }
+    }
 
     companion object {
         const val TAG = "fragment_tag_nine_grid"
@@ -72,16 +95,26 @@ class NineGridFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if (mEventBus == null) {
+            mEventBus = EventBus.getDefault()
+        }
+        mEventBus!!.register(this)
+
         missionId = requireArguments().getString(ARG_KEY_ID)
         title = requireArguments().getString(ARG_KEY_TITLE)
         describe = requireArguments().getString(ARG_KEY_DESC)
         verify_code = requireArguments().getString(ARG_KEY_CODE)
 
-        userId = MissionListFragment.userId
-        if (userId.isEmpty()) {
-            userId = "Hf1242aaa6" // not login
-        }
         makePageDataReq()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        if (mEventBus != null) {
+            mEventBus!!.unregister(this)
+        }
     }
 
     override fun onCreateView(
@@ -100,6 +133,9 @@ class NineGridFragment : Fragment() {
 
         getRewardAlreadyBtn = mView.findViewById<TextView>(R.id.already_collect_rewards_btn)
         getRewardBtn = mView.findViewById<TextView>(R.id.collect_rewards_btn)
+        getRewardBtn!!.setOnClickListener {
+            showHintMessage()
+        }
 
         mList = ArrayList<GridData>()
         mAdapter = NineGridAdapter(requireActivity(), mList!!)
@@ -119,6 +155,45 @@ class NineGridFragment : Fragment() {
         return mView
     }
 
+    @SuppressLint("HardwareIds")
+    fun showHintMessage() {
+        val view =
+            LayoutInflater.from(requireActivity()).inflate(R.layout.dialog_message, null, false)
+        val builder = AlertDialog.Builder(requireActivity()).setView(view)
+        val messageDialog = builder.create()
+        messageDialog.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        view.findViewById<View>(R.id.dialog_message_neg).visibility = View.VISIBLE
+        view.findViewById<View>(R.id.dialog_message_divider).visibility = View.VISIBLE
+        (view.findViewById<View>(R.id.dialog_message_title) as TextView).setText(R.string.receive_reward)
+        (view.findViewById<View>(R.id.dialog_message_desc) as TextView).setText(R.string.receive_reward_hint)
+        (view.findViewById<View>(R.id.dialog_message_neg) as TextView).setText(R.string.reward_postpone)
+
+        view.findViewById<View>(R.id.dialog_message_pos)
+            .setOnClickListener {
+                TpeArApi.getInstance().getMissionReward(requireActivity(),
+                    missionId,
+                    userId,
+                    Settings.Secure.getString(
+                        mContext!!.contentResolver,
+                        Settings.Secure.ANDROID_ID
+                    ),
+                object : NetworkManager.NetworkManagerListener<MissionRewardFeedback?> {
+                        override fun onSucceed(feedback: MissionRewardFeedback?) {
+                            getRewardAlreadyBtn!!.visibility = View.VISIBLE
+                            getRewardBtn!!.visibility = View.GONE
+                            messageDialog.dismiss()
+                            EventBus.getDefault()
+                                .post(OmniEvent(OmniEvent.TYPE_REWARD_COMPLETE, ""))
+                        }
+
+                        override fun onFail(error: VolleyError, shouldRetry: Boolean) {}
+                    })
+            }
+        view.findViewById<View>(R.id.dialog_message_neg)
+            .setOnClickListener { messageDialog.dismiss() }
+        messageDialog.show()
+    }
+
     private fun makePageDataReq() {
         TpeArApi.getInstance().getMissionGrid(
             requireActivity(),
@@ -126,7 +201,11 @@ class NineGridFragment : Fragment() {
             userId,
             object : NetworkManager.NetworkManagerListener<MissionGridFeedback?> {
                 override fun onSucceed(feedback: MissionGridFeedback?) {
-                    myNineGridData = feedback!!.data
+                    for (item in feedback!!.data.nine_grid) {
+                        item.poi.gridFinished = item.is_complete.toString()
+                    }
+                    myNineGridData = feedback.data
+                    currentNineGridData = feedback.data
                     prepareData()
                 }
 
@@ -140,19 +219,9 @@ class NineGridFragment : Fragment() {
             if (myNineGridData!!.rws_enabled.equals("Done")) {
                 getRewardAlreadyBtn!!.visibility = View.VISIBLE
                 getRewardBtn!!.visibility = View.GONE
-                getRewardAlreadyBtn!!.text = resources.getString(R.string.receive_reward)
             } else if (myNineGridData!!.rws_enabled.equals("None")) {
                 getRewardAlreadyBtn!!.visibility = View.GONE
                 getRewardBtn!!.visibility = View.VISIBLE
-            }
-        }
-        for (i in RewardListFragment.mRewardFeedback.data.indices) {
-            if (RewardListFragment.mRewardFeedback.data[i].m_id.equals(missionId)) {
-                if (RewardListFragment.mRewardFeedback.data[i].rws_enabled.equals("Done")) {
-                    getRewardAlreadyBtn!!.visibility = View.VISIBLE
-                    getRewardBtn!!.visibility = View.GONE
-                    getRewardAlreadyBtn!!.setText(R.string.received)
-                }
             }
         }
         mList!!.clear()

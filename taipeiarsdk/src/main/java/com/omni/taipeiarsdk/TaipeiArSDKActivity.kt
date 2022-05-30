@@ -23,6 +23,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.places.Places
 import com.omni.taipeiarsdk.manager.AnimationFragmentManager
 import com.omni.taipeiarsdk.model.OmniEvent
+import com.omni.taipeiarsdk.model.mission.MissionGridData
 import com.omni.taipeiarsdk.model.tpe_location.Ar
 import com.omni.taipeiarsdk.model.tpe_location.IndexPoi
 import com.omni.taipeiarsdk.tool.TaipeiArSDKText
@@ -54,6 +55,11 @@ class TaipeiArSDKActivity : AppCompatActivity(), LocationListener,
         lateinit var filterKeyword: ArrayList<String>
         lateinit var filterKeywordCopy: ArrayList<String>
         lateinit var themeTitle: String
+        lateinit var currentNineGridData: MissionGridData
+        lateinit var missionTitle: String
+        lateinit var isMission: String
+        lateinit var missionId: String
+        lateinit var ng_id: String
     }
 
     private val sampleDefinitionsPath = "samples/samples.json"
@@ -79,6 +85,7 @@ class TaipeiArSDKActivity : AppCompatActivity(), LocationListener,
                 startActivity(intent)
             }
             OmniEvent.TYPE_OPEN_AR_GUIDE -> {
+                isMission = "false"
                 mIndexPOI = event.obj as Array<IndexPoi>
                 sampleData = categories!![9].samples[1] //ar_guide
                 val intent = Intent(this@TaipeiArSDKActivity, sampleData!!.activityClass)
@@ -90,6 +97,27 @@ class TaipeiArSDKActivity : AppCompatActivity(), LocationListener,
                 intent.putExtra(
                     SimpleArActivity.INTENT_EXTRAS_KEY_THEME_TITLE,
                     themeTitle
+                )
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                startActivity(intent)
+            }
+            OmniEvent.TYPE_OPEN_AR_MISSION -> {
+                isMission = "true"
+                mIndexPOI = event.obj as Array<IndexPoi>
+                sampleData = categories!![9].samples[1] //ar_guide
+                val intent = Intent(this@TaipeiArSDKActivity, sampleData!!.activityClass)
+                intent.putExtra(SimpleArActivity.INTENT_EXTRAS_KEY_SAMPLE, sampleData)
+                intent.putExtra(
+                    SimpleArActivity.INTENT_EXTRAS_KEY_MISSION_DATA,
+                    event.obj as Array<IndexPoi>
+                )
+                intent.putExtra(
+                    SimpleArActivity.INTENT_EXTRAS_KEY_NINE_GRID_DATA,
+                    currentNineGridData.nine_grid
+                )
+                intent.putExtra(
+                    SimpleArActivity.INTENT_EXTRAS_KEY_MISSION_TITLE,
+                    missionTitle
                 )
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 startActivity(intent)
@@ -106,6 +134,8 @@ class TaipeiArSDKActivity : AppCompatActivity(), LocationListener,
         }
         mEventBus!!.register(this)
 
+        isMission = "false"
+        userId = "Hf1242aaa6"
         ar_open_by_poi = "false"
         filterKeyword = ArrayList()
         filterKeywordCopy = ArrayList()
@@ -195,10 +225,10 @@ class TaipeiArSDKActivity : AppCompatActivity(), LocationListener,
 
         checkLocationService()
 
-        if (ar_open_by_poi == "true") {
+        if (ar_open_by_poi == "true" && isMission == "false") {
             ar_open_by_poi = "false"
 
-            sampleData = categories!![9].samples[1] //ar_recognize
+            sampleData = categories!![9].samples[1] //ar_guide
             val intent = Intent(this@TaipeiArSDKActivity, sampleData!!.activityClass)
             intent.putExtra(SimpleArActivity.INTENT_EXTRAS_KEY_SAMPLE, sampleData)
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)

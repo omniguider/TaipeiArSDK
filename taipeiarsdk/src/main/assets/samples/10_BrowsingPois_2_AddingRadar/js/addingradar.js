@@ -66,6 +66,8 @@ var World = {
 		World.markerDrawable_icon_exhibition = new AR.ImageResource("assets/exhibition.png");
 		World.markerDrawable_icon_monument = new AR.ImageResource("assets/monument.png");
 		World.markerDrawable_icon_sport = new AR.ImageResource("assets/sport.png");
+		World.markerDrawable_icon_finished = new AR.ImageResource("assets/finish.png");
+		World.markerDrawable_icon_transparent = new AR.ImageResource("assets/transparent.png");
 
 		// loop through POI-information and create an AR.GeoObject (=Marker) per POI
 //		for (var currentPlaceNr = 0; currentPlaceNr < poiData.length; currentPlaceNr++) {
@@ -200,7 +202,8 @@ var World = {
                  "altitude": altitude,
                  "title": World.POIData[index].name,
                  "description": distanceStr,
-                 "category": World.POIData[index].category
+                 "category": World.POIData[index].category,
+                 "gridFinished": World.POIData[index].gridFinished
              };
 
               World.addMarker = new Marker(singlePoi);

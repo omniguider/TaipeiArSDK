@@ -8,11 +8,15 @@ import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -24,6 +28,7 @@ import com.omni.taipeiarsdk.R;
 import com.omni.taipeiarsdk.TaipeiArSDKActivity;
 import com.omni.taipeiarsdk.model.GetWtcFeedback;
 import com.omni.taipeiarsdk.model.OmniEvent;
+import com.omni.taipeiarsdk.model.mission.MissionCompleteFeedback;
 import com.omni.taipeiarsdk.network.NetworkManager;
 import com.omni.taipeiarsdk.network.TpeArApi;
 import com.omni.taipeiarsdk.pano.ArPattensFeedback;
@@ -40,6 +45,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Arrays;
 
+import static com.omni.taipeiarsdk.TaipeiArSDKActivity.isMission;
+import static com.omni.taipeiarsdk.TaipeiArSDKActivity.missionId;
+import static com.omni.taipeiarsdk.TaipeiArSDKActivity.ng_id;
+import static com.omni.taipeiarsdk.TaipeiArSDKActivity.userId;
 import static com.wikitude.architect.ArchitectView.CaptureScreenCallback.CAPTURE_MODE_CAM;
 
 public class TestExtension extends ArchitectViewExtension implements ArchitectJavaScriptInterfaceListener {
@@ -167,8 +176,7 @@ public class TestExtension extends ArchitectViewExtension implements ArchitectJa
     }
 
     private void makePattenContentReq() {
-        String mUserId = TaipeiArSDKActivity.userId;
-        Log.d("LOG", "makePattenContentReq: " + recognizedPattenId + "," + mUserId);
+        Log.d("LOG", "makePattenContentReq: " + recognizedPattenId + "," + userId);
         TpeArApi.getInstance().getPatternsContent(activity,
                 recognizedPattenId,
                 "1",
@@ -236,6 +244,23 @@ public class TestExtension extends ArchitectViewExtension implements ArchitectJa
                                         break;
 
                                 }
+
+                                if (isMission.equals("true")) {
+                                    showCompleteMessage();
+                                    TpeArApi.getInstance().getMissionComplete(activity,
+                                            missionId, ng_id, userId,
+                                            new NetworkManager.NetworkManagerListener<MissionCompleteFeedback>() {
+                                                @Override
+                                                public void onSucceed(MissionCompleteFeedback feedback) {
+                                                    EventBus.getDefault().post(new OmniEvent(OmniEvent.TYPE_MISSION_COMPLETE, ""));
+                                                }
+
+                                                @Override
+                                                public void onFail(VolleyError error, boolean shouldRetry) {
+
+                                                }
+                                            });
+                                }
                             }
                         }
                     }
@@ -249,6 +274,20 @@ public class TestExtension extends ArchitectViewExtension implements ArchitectJa
 
     }
 
+    public void showCompleteMessage() {
+        View view = LayoutInflater.from(activity).inflate(R.layout.dialog_mission_complete, null, false);
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity).setView(view);
+        final AlertDialog completeDialog = builder.create();
+        completeDialog.setCancelable(false);
+        completeDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        view.findViewById(R.id.dialog_mission_complete_confirm).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                completeDialog.dismiss();
+            }
+        });
+        completeDialog.show();
+    }
 
     /**
      * This method will store the screenshot in a file and will create an intent to share it.
@@ -273,7 +312,7 @@ public class TestExtension extends ArchitectViewExtension implements ArchitectJa
                     Uri imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
                     out = (FileOutputStream) resolver.openOutputStream(imageUri);
 
-                } else  {
+                } else {
                     out = new FileOutputStream(filePath + File.separator + "screenCapture_" + System.currentTimeMillis() + ".jpg");
 
                 }

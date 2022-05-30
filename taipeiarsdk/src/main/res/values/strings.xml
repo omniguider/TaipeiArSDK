@@ -32,6 +32,7 @@
     <string name="right_target_video_hint">辨識正確，多媒體檔案，請開啟聲音！</string>
     <string name="wrong_target_hint">請掃描正確的目標！</string>
     <string name="sure">確定</string>
+    <string name="confirm">確認</string>
     <string name="dialog_button_ok_text">好</string>
     <string name="dialog_button_no_text">否</string>
     <string name="dialog_title_text_log">Log</string>
@@ -43,6 +44,7 @@
     <string name="dialog_message_network_connect_not_good">此處無可供服務流量之網路，請移動至適當區域，檢查連線狀況後再試。</string>
 
     <string name="ar_guide">AR探索</string>
+    <string name="ar_scan">AR掃描</string>
     <string name="ar_guide_en">AR Navigation</string>
     <string name="theme_guide">主題導覽</string>
     <string name="theme_guide_en">Point of interest</string>
@@ -72,4 +74,9 @@
     <string name="received">已領取</string>
     <string name="start_mission">闖關去</string>
     <string name="grid_hint">關卡提示</string>
+    <string name="ar_hint">請抵達目的地附近才能啟動AR</string>
+    <string name="hint">提示</string>
+    <string name="mission_complete">完成任務</string>
+    <string name="receive_reward_hint">請交由工作人員點擊「 確定 」才能領取獎勵，或放置獎勵區</string>
+    <string name="reward_postpone">放置獎勵區</string>
 </resources>

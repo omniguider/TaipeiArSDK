@@ -124,6 +124,26 @@ function Marker(poiData) {
         });
     }
 
+    if (poiData.gridFinished == "true") {
+        this.icon2 = new AR.ImageDrawable(World.markerDrawable_icon_finished, 0.5, {
+            zOrder: 1,
+            translate: {
+                x: 1.8,
+                y: 0.9
+            }
+        });
+    }
+    else
+    {
+        this.icon2 = new AR.ImageDrawable(World.markerDrawable_icon_transparent, 0.5, {
+            zOrder: 1,
+            translate: {
+                x: 1.8,
+                y: 0.9
+            }
+        });
+    }
+
     /*
         Create an AR.ImageDrawable using the AR.ImageResource for the direction indicator which was created in the World. Set options regarding the offset and anchor of the image so that it will be displayed correctly on the edge of the screen.
     */
@@ -159,7 +179,7 @@ function Marker(poiData) {
     */
     this.markerObject = new AR.GeoObject(markerLocation, {
         drawables: {
-            cam: [this.markerDrawable_idle, this.markerDrawable_selected, this.titleLabel, this.descriptionLabel, this.titleSelectLabel, this.descriptionSelectLabel, this.icon],
+            cam: [this.markerDrawable_idle, this.markerDrawable_selected, this.titleLabel, this.descriptionLabel, this.titleSelectLabel, this.descriptionSelectLabel, this.icon, this.icon2],
             indicator: this.directionIndicatorDrawable,
             radar: this.radardrawables
         }

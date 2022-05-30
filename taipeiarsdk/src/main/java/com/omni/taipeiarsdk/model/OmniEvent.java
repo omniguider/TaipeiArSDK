@@ -10,6 +10,9 @@ public class OmniEvent {
     public static final int TYPE_OPEN_AR_GUIDE = 5;
     public static final int TYPE_SHOW_AR_MODEL = 6;
     public static final int TYPE_SEARCH_FILTER = 7;
+    public static final int TYPE_OPEN_AR_MISSION = 8;
+    public static final int TYPE_MISSION_COMPLETE = 9;
+    public static final int TYPE_REWARD_COMPLETE = 10;
 
     private int mType;
     private String mContent;

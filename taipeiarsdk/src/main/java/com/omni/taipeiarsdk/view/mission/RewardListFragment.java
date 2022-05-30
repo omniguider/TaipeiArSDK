@@ -1,12 +1,9 @@
 package com.omni.taipeiarsdk.view.mission;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -17,29 +14,34 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.NetworkImageView;
 import com.omni.taipeiarsdk.R;
-import com.omni.taipeiarsdk.TaipeiArSDKActivity;
-import com.omni.taipeiarsdk.model.mission.MissionData;
+import com.omni.taipeiarsdk.manager.AnimationFragmentManager;
+import com.omni.taipeiarsdk.model.OmniEvent;
 import com.omni.taipeiarsdk.model.mission.RewardData;
 import com.omni.taipeiarsdk.model.mission.RewardFeedback;
 import com.omni.taipeiarsdk.network.NetworkManager;
 import com.omni.taipeiarsdk.network.TpeArApi;
-import com.omni.taipeiarsdk.tool.DialogTools;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
-import java.util.List;
+
+import static com.omni.taipeiarsdk.TaipeiArSDKActivity.userId;
 
 public class RewardListFragment extends Fragment {
 
     private View mView;
     private RecyclerView mRecyclerView;
-    public static String userId = "";
     public static String missionId = "";
     public static String title = "";
     public static String describe = "";
     public static int reward_num = 0;
     public static RewardFeedback mRewardFeedback;
     private LinearLayout emptyLayout;
-    private ArrayList<RewardData> mData;
+    private ArrayList<RewardData> mData = new ArrayList();
+    private RecyclerViewAdapter mRecyclerViewAdapter;
+    private EventBus mEventBus;
 
     public static RewardListFragment newInstance() {
         RewardListFragment fragment = new RewardListFragment();
@@ -47,9 +49,54 @@ public class RewardListFragment extends Fragment {
         return fragment;
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(OmniEvent event) {
+        switch (event.getType()) {
+            case OmniEvent.TYPE_REWARD_COMPLETE:
+                TpeArApi.getInstance().getReward(this.getActivity(),
+                        "reward",
+                        userId,
+                        new NetworkManager.NetworkManagerListener<RewardFeedback>() {
+                            @Override
+                            public void onSucceed(RewardFeedback feedback) {
+                                mRewardFeedback = feedback;
+                                reward_num = feedback.getData().length;
+                                mData.clear();
+                                for (int i = 0; i < reward_num; i++) {
+                                    if (feedback.getData()[i].getIs_finish()) {
+                                        mData.add(feedback.getData()[i]);
+                                    }
+                                }
+                                mRecyclerViewAdapter.notifyDataSetChanged();
+                                if (reward_num != 0) {
+                                    emptyLayout.setVisibility(View.GONE);
+                                }
+                            }
+
+                            @Override
+                            public void onFail(VolleyError error, boolean shouldRetry) {
+                            }
+                        });
+                break;
+        }
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (mEventBus == null) {
+            mEventBus = EventBus.getDefault();
+        }
+        mEventBus.register(this);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        if (mEventBus != null) {
+            mEventBus.unregister(this);
+        }
     }
 
     @Override
@@ -64,11 +111,6 @@ public class RewardListFragment extends Fragment {
 
             emptyLayout = mView.findViewById(R.id.empty_layout);
 
-            userId = TaipeiArSDKActivity.userId;
-            if (userId == null || userId.length() == 0) {
-                userId = "Hf1242aaa6"; // not login
-            }
-
             TpeArApi.getInstance().getReward(this.getActivity(),
                     "reward",
                     userId,
@@ -77,13 +119,12 @@ public class RewardListFragment extends Fragment {
                         public void onSucceed(RewardFeedback feedback) {
                             mRewardFeedback = feedback;
                             reward_num = feedback.getData().length;
-                            ArrayList<RewardData> myData = new ArrayList<>();
                             for (int i = 0; i < reward_num; i++) {
                                 if (feedback.getData()[i].getIs_finish()) {
-                                    myData.add(feedback.getData()[i]);
+                                    mData.add(feedback.getData()[i]);
                                 }
                             }
-                            RecyclerViewAdapter mRecyclerViewAdapter = new RecyclerViewAdapter(myData);
+                            mRecyclerViewAdapter = new RecyclerViewAdapter();
                             mRecyclerView.setAdapter(mRecyclerViewAdapter);
                             if (reward_num != 0) {
                                 emptyLayout.setVisibility(View.GONE);
@@ -104,18 +145,18 @@ public class RewardListFragment extends Fragment {
             public TextView title;
             public TextView date;
             public NetworkImageView img;
+            public TextView status;
 
             public ViewHolder(View v) {
                 super(v);
                 this.title = v.findViewById(R.id.reward_title);
                 this.date = v.findViewById(R.id.reward_date);
                 this.img = v.findViewById(R.id.reward_img);
+                this.status = v.findViewById(R.id.reward_state);
             }
         }
 
-        public RecyclerViewAdapter(ArrayList<RewardData> data) {
-            mData = new ArrayList<>();
-            mData.addAll(data);
+        public RecyclerViewAdapter() {
         }
 
         @Override
@@ -130,26 +171,16 @@ public class RewardListFragment extends Fragment {
         public void onBindViewHolder(ViewHolder holder, final int position) {
             holder.title.setText(mData.get(position).getRW_title());
 
-            final int pos = position;
+            if (mData.get(position).getRws_enabled().equals("Done")) {
+                holder.status.setText(R.string.received);
+                holder.status.setTextColor(getResources().getColor(R.color.gray_6d));
+            }
             NetworkManager.getInstance().setNetworkImage(getContext(),
-                    holder.img, mData.get(position).getM_img());
+                    holder.img, mData.get(position).getRW_img());
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    String mTitle = mData.get(position).getM_title();
-                    for (int i = 0; i < reward_num; i++) {
-                        if (mRewardFeedback.getData()[i].getM_title().equals(mTitle)) {
-                            missionId = mRewardFeedback.getData()[i].getM_id();
-                            title = mRewardFeedback.getData()[pos].getRW_title();
-                            describe = mRewardFeedback.getData()[pos].getRW_describe();
-                            break;
-                        }
-                    }
-//                        Intent toMissionActivity = new Intent(getActivity(), MissionActivity.class);
-//                        toMissionActivity.putExtra("missionID",missionId);
-//                        toMissionActivity.putExtra("title",title);
-//                        toMissionActivity.putExtra("describe",describe);
-//                        startActivity(toMissionActivity);
+                    openFragmentPage(RewardFragment.Companion.newInstance(mData.get(position)), RewardFragment.TAG);
                 }
             });
         }
@@ -158,5 +189,10 @@ public class RewardListFragment extends Fragment {
         public int getItemCount() {
             return mData.size();
         }
+    }
+
+    private void openFragmentPage(Fragment fragment, String tag) {
+        AnimationFragmentManager.getInstance().addFragmentPage(getActivity(),
+                R.id.activity_main_fl, fragment, tag);
     }
 }

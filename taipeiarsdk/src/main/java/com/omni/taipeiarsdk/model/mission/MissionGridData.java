@@ -5,7 +5,7 @@ import java.io.Serializable;
 public class MissionGridData implements Serializable {
 
     private int grid_now;
-    private boolean Is_finish;
+    private boolean is_finish;
     private GridData[] nine_grid;
     private String mission_title;
     private String mission_describe;
@@ -23,11 +23,11 @@ public class MissionGridData implements Serializable {
     }
 
     public boolean getIs_finish() {
-        return Is_finish;
+        return is_finish;
     }
 
-    public void setIs_finish(boolean Is_finish) {
-        this.Is_finish = Is_finish;
+    public void setIs_finish(boolean is_finish) {
+        this.is_finish = is_finish;
     }
 
     public GridData[] getNine_grid() {

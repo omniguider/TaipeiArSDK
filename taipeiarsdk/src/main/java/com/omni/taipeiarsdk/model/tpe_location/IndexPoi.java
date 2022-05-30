@@ -18,6 +18,7 @@ public class IndexPoi implements Serializable {
     private Category category;
     private ArTrigger ar_trigger;
     private Ar ar;
+    private String gridFinished;
 
     public String getId() {
         return id;
@@ -61,6 +62,14 @@ public class IndexPoi implements Serializable {
 
     public Ar getAr() {
         return ar;
+    }
+
+    public String getGridFinished() {
+        return gridFinished;
+    }
+
+    public void setGridFinished(String gridFinished) {
+        this.gridFinished = gridFinished;
     }
 }
 

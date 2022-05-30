@@ -1,18 +1,16 @@
 package com.omni.taipeiarsdk;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
-import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.ColorDrawable;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.hardware.GeomagneticField;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -40,7 +38,6 @@ import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -68,19 +65,17 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.material.button.MaterialButton;
 import com.omni.taipeiarsdk.model.ArScanInfo;
 import com.omni.taipeiarsdk.model.OmniEvent;
-import com.omni.taipeiarsdk.model.UserImageFeedback;
+import com.omni.taipeiarsdk.model.mission.GridData;
+import com.omni.taipeiarsdk.model.mission.MissionCompleteFeedback;
 import com.omni.taipeiarsdk.model.tpe_location.Ar;
-import com.omni.taipeiarsdk.model.tpe_location.IndexData;
 import com.omni.taipeiarsdk.model.tpe_location.IndexFeedback;
 import com.omni.taipeiarsdk.model.tpe_location.IndexPoi;
 import com.omni.taipeiarsdk.network.NetworkManager;
 import com.omni.taipeiarsdk.network.TpeArApi;
 import com.omni.taipeiarsdk.pano.ArPattensFeedback;
 import com.omni.taipeiarsdk.tool.TaipeiArSDKText;
-import com.omni.taipeiarsdk.util.PermissionUtil;
 import com.omni.taipeiarsdk.util.SampleCategory;
 import com.omni.taipeiarsdk.util.SampleData;
-import com.omni.taipeiarsdk.util.SampleJsonParser;
 import com.omni.taipeiarsdk.util.TestExtension;
 import com.omni.taipeiarsdk.view.GridViewItem;
 import com.wikitude.architect.ArchitectJavaScriptInterfaceListener;
@@ -91,18 +86,19 @@ import com.wikitude.common.permission.PermissionManager;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
+import static com.omni.taipeiarsdk.TaipeiArSDKActivity.isMission;
+import static com.omni.taipeiarsdk.TaipeiArSDKActivity.missionId;
+import static com.omni.taipeiarsdk.TaipeiArSDKActivity.ng_id;
+import static com.omni.taipeiarsdk.TaipeiArSDKActivity.userId;
 import static com.wikitude.architect.ArchitectView.CaptureScreenCallback.CAPTURE_MODE_CAM_AND_WEBVIEW;
 
 /**
@@ -117,6 +113,9 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
     public static final String INTENT_EXTRAS_KEY_SAMPLE = "sampleData";
     public static final String INTENT_EXTRAS_KEY_THEME_DATA = "themeData";
     public static final String INTENT_EXTRAS_KEY_THEME_TITLE = "themeTitle";
+    public static final String INTENT_EXTRAS_KEY_MISSION_DATA = "missionData";
+    public static final String INTENT_EXTRAS_KEY_NINE_GRID_DATA = "nineGridData";
+    public static final String INTENT_EXTRAS_KEY_MISSION_TITLE = "missionTitle";
     private static final String TAG = SimpleArActivity.class.getSimpleName();
 
     /**
@@ -203,7 +202,9 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
     private GridView gridView;
     private String selectPOIId;
     private IndexPoi[] mIndexPOI;
+    private GridData[] mGridData;
     private IndexPoi indexPoi = null;
+    private boolean currentGridPass = false;
 
     private List<SampleCategory> categories;
     private static final String sampleDefinitionsPath = "samples/samples.json";
@@ -225,6 +226,12 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
                 mDeclination = field.getDeclination();
 
                 showUserPosition();
+                if (indexPoi != null) {
+                    if (isMission.equals("true") &&
+                            indexPoi.getAr_trigger().getActive_method().equals("0") &&
+                            !currentGridPass)
+                        detectArMission();
+                }
                 break;
             case OmniEvent.TYPE_USER_AR_INTERACTIVE_TEXT:
                 runOnUiThread(new Runnable() {
@@ -467,6 +474,7 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
         }
     }
 
+    @SuppressLint("InflateParams")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -528,6 +536,16 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
         if (intent.hasExtra(INTENT_EXTRAS_KEY_THEME_DATA)) {
             mIndexPOI = (IndexPoi[]) intent.getSerializableExtra(INTENT_EXTRAS_KEY_THEME_DATA);
             Log.e("LOG", "mIndexPOI" + mIndexPOI.length);
+        }
+
+        if (intent.hasExtra(INTENT_EXTRAS_KEY_MISSION_DATA)) {
+            mIndexPOI = (IndexPoi[]) intent.getSerializableExtra(INTENT_EXTRAS_KEY_MISSION_DATA);
+            Log.e("LOG", "mIndexPOI" + mIndexPOI.length);
+        }
+
+        if (intent.hasExtra(INTENT_EXTRAS_KEY_NINE_GRID_DATA)) {
+            mGridData = (GridData[]) intent.getSerializableExtra(INTENT_EXTRAS_KEY_NINE_GRID_DATA);
+            Log.e("LOG", "mGridData" + mGridData.length);
         }
 
         /*
@@ -641,13 +659,19 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
         if (intent.hasExtra(INTENT_EXTRAS_KEY_THEME_TITLE)) {
             title.setText((CharSequence) intent.getSerializableExtra(INTENT_EXTRAS_KEY_THEME_TITLE));
         }
+        if (intent.hasExtra(INTENT_EXTRAS_KEY_MISSION_TITLE)) {
+            title.setText((CharSequence) intent.getSerializableExtra(INTENT_EXTRAS_KEY_MISSION_TITLE));
+        }
 
         mMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.activity_simple_ar_map);
         if (!arExperience.contains("10_BrowsingPois_2_AddingRadar")) {
             mMapFragment.getView().setVisibility(View.GONE);
             position.setVisibility(View.GONE);
             intro.setVisibility(View.GONE);
-            title.setText(getString(R.string.ar_recognize_title));
+            if (isMission.equals("true"))
+                title.setText(getString(R.string.mission));
+            else
+                title.setText(getString(R.string.ar_scan));
         } else {
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         }
@@ -832,11 +856,51 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
         mask_bottom.setVisibility(View.GONE);
     }
 
+    public void showHintMessage() {
+        View view = LayoutInflater.from(this).inflate(R.layout.dialog_message, null, false);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this).setView(view);
+        final AlertDialog messageDialog = builder.create();
+        messageDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        view.findViewById(R.id.dialog_message_pos).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                messageDialog.dismiss();
+            }
+        });
+        ((TextView) view.findViewById(R.id.dialog_message_title)).setText(R.string.ar_hint);
+        messageDialog.show();
+    }
+
+    public void showCompleteMessage() {
+        View view = LayoutInflater.from(this).inflate(R.layout.dialog_mission_complete, null, false);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this).setView(view);
+        final AlertDialog completeDialog = builder.create();
+        completeDialog.setCancelable(false);
+        completeDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        view.findViewById(R.id.dialog_mission_complete_confirm).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                completeDialog.dismiss();
+//                finish();
+            }
+        });
+        completeDialog.show();
+    }
+
     public void showPOIInfo(String id) {
         for (IndexPoi poi : mIndexPOI) {
             if (poi.getId().equals(id)) {
                 indexPoi = poi;
                 break;
+            }
+        }
+        if (isMission.equals("true")) {
+            currentGridPass = false;
+            for (GridData data : mGridData) {
+                if (data.getPoi().getId().equals(id)) {
+                    ng_id = data.getId();
+                    break;
+                }
             }
         }
 
@@ -858,12 +922,14 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
         } else {
             ((TextView) view.findViewById(R.id.dialog_poi_info_pano)).setText(indexPoi.getHyperlink_text());
         }
-        if (indexPoi.getAr_trigger().getActive_method().length() == 0) {
+        if (indexPoi.getAr_trigger().getActive_method().length() == 0 ||
+                indexPoi.getAr_trigger().getActive_method().equals("0")) {
             view.findViewById(R.id.dialog_poi_info_ar).setVisibility(View.GONE);
             view.findViewById(R.id.dialog_poi_info_divider).setVisibility(View.GONE);
         }
         if (indexPoi.getHyperlink_url().length() == 0 &&
-                indexPoi.getAr_trigger().getActive_method().length() == 0) {
+                (indexPoi.getAr_trigger().getActive_method().length() == 0 ||
+                        indexPoi.getAr_trigger().getActive_method().equals("0"))) {
             view.findViewById(R.id.dialog_poi_info_btn_ll).setVisibility(View.GONE);
         }
 
@@ -893,15 +959,46 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
                     double lng = mLastLocation.getLongitude() + deltaY / distance * 20;
                     double degree = findDegree((float) deltaX, (float) deltaY);
 
+                    Log.e("LOG", "distance" + distance);
                     Log.e("LOG", "createModelAtLocation lat" + lat);
                     Log.e("LOG", "createModelAtLocation lng" + lng);
-                    if (indexPoi.getAr().getContent_type().equals("3d_model")) {
-                        architectView.callJavascript("World.createModelAtLocation(" +
-                                lat + "," + lng +
-                                "," + 0.45 + "," + 0 + "," + degree + ",'" + indexPoi.getAr().getContent() + "')");
-                    } else if (indexPoi.getAr().getContent_type().equals("image")) {
-                        architectView.callJavascript("World.createImageAtLocation(" +
-                                lat + "," + lng + ",'" + indexPoi.getAr().getContent() + "')");
+                    Log.e("LOG", "isMission" + isMission);
+                    if (isMission.equals("false")) {
+                        if (indexPoi.getAr().getContent_type().equals("3d_model")) {
+                            architectView.callJavascript("World.createModelAtLocation(" +
+                                    lat + "," + lng +
+                                    "," + 0.45 + "," + 0 + "," + degree + ",'" + indexPoi.getAr().getContent() + "')");
+                        } else if (indexPoi.getAr().getContent_type().equals("image")) {
+                            architectView.callJavascript("World.createImageAtLocation(" +
+                                    lat + "," + lng + ",'" + indexPoi.getAr().getContent() + "')");
+                        }
+                    } else {    //mission
+                        if (distance <= Integer.parseInt(indexPoi.getAr_trigger().getDistance())) {
+                            if (indexPoi.getAr().getContent_type().equals("3d_model")) {
+                                architectView.callJavascript("World.createModelAtLocation(" +
+                                        lat + "," + lng +
+                                        "," + 0.45 + "," + 0 + "," + degree + ",'" + indexPoi.getAr().getContent() + "')");
+                            } else if (indexPoi.getAr().getContent_type().equals("image")) {
+                                architectView.callJavascript("World.createImageAtLocation(" +
+                                        lat + "," + lng + ",'" + indexPoi.getAr().getContent() + "')");
+                            }
+                            showCompleteMessage();
+                            TpeArApi.getInstance().getMissionComplete(this,
+                                    missionId, ng_id, userId,
+                                    new NetworkManager.NetworkManagerListener<MissionCompleteFeedback>() {
+                                        @Override
+                                        public void onSucceed(MissionCompleteFeedback feedback) {
+                                            EventBus.getDefault().post(new OmniEvent(OmniEvent.TYPE_MISSION_COMPLETE, ""));
+                                        }
+
+                                        @Override
+                                        public void onFail(VolleyError error, boolean shouldRetry) {
+
+                                        }
+                                    });
+                        } else {
+                            showHintMessage();
+                        }
                     }
                     break;
                 case "2":
@@ -910,6 +1007,46 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
                     break;
             }
         });
+    }
+
+    private void detectArMission() {
+        double distance = getDistance(
+                mLastLocation.getLatitude(),
+                mLastLocation.getLongitude(),
+                Double.parseDouble(indexPoi.getLat()),
+                Double.parseDouble(indexPoi.getLng()));
+        double deltaX = (Double.parseDouble(indexPoi.getLat()) - mLastLocation.getLatitude());
+        double deltaY = (Double.parseDouble(indexPoi.getLng()) - mLastLocation.getLongitude());
+        double lat = mLastLocation.getLatitude() + deltaX / distance * 20;
+        double lng = mLastLocation.getLongitude() + deltaY / distance * 20;
+        double degree = findDegree((float) deltaX, (float) deltaY);
+
+        Log.e(TAG, "detectArMission distance" + distance);
+        if (distance <= Integer.parseInt(indexPoi.getAr_trigger().getDistance())) {
+            if (indexPoi.getAr().getContent_type().equals("3d_model")) {
+                architectView.callJavascript("World.createModelAtLocation(" +
+                        lat + "," + lng +
+                        "," + 0.45 + "," + 0 + "," + degree + ",'" + indexPoi.getAr().getContent() + "')");
+            } else if (indexPoi.getAr().getContent_type().equals("image")) {
+                architectView.callJavascript("World.createImageAtLocation(" +
+                        lat + "," + lng + ",'" + indexPoi.getAr().getContent() + "')");
+            }
+            showCompleteMessage();
+            TpeArApi.getInstance().getMissionComplete(this,
+                    missionId, ng_id, userId,
+                    new NetworkManager.NetworkManagerListener<MissionCompleteFeedback>() {
+                        @Override
+                        public void onSucceed(MissionCompleteFeedback feedback) {
+                            currentGridPass = true;
+                            EventBus.getDefault().post(new OmniEvent(OmniEvent.TYPE_MISSION_COMPLETE, ""));
+                        }
+
+                        @Override
+                        public void onFail(VolleyError error, boolean shouldRetry) {
+
+                        }
+                    });
+        }
     }
 
     private View.OnClickListener mOnClickListener = new View.OnClickListener() {

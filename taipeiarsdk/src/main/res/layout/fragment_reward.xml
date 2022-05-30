@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/container_nine_grid_navi"
+    android:id="@+id/container_nine_fragment_reward_navi"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_alignParentBottom="true"
@@ -15,7 +15,6 @@
         android:orientation="vertical">
 
         <androidx.appcompat.widget.Toolbar
-            android:id="@+id/nine_grid_action_bar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="@color/colorPrimary">
@@ -36,7 +35,6 @@
             </FrameLayout>
 
             <TextView
-                android:id="@+id/fragment_mission_tv_action_bar_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
@@ -47,7 +45,7 @@
         </androidx.appcompat.widget.Toolbar>
 
         <TextView
-            android:id="@+id/grid_title_tv"
+            android:id="@+id/fragment_reward_title_tv"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
@@ -57,8 +55,28 @@
             android:textSize="24sp"
             android:textStyle="bold" />
 
+        <TextView
+            android:id="@+id/fragment_reward_date_tv"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
+            android:textColor="@color/gray_33"
+            android:textSize="16sp"
+            android:visibility="gone" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
+            android:background="@color/gray_cc"
+            android:visibility="gone" />
+
         <com.android.volley.toolbox.NetworkImageView
-            android:id="@+id/grid_pic"
+            android:id="@+id/fragment_reward_pic"
             android:layout_width="match_parent"
             android:layout_height="160dp"
             android:layout_gravity="center"
@@ -66,7 +84,7 @@
             android:scaleType="centerCrop" />
 
         <TextView
-            android:id="@+id/grid_desc_tv"
+            android:id="@+id/fragment_reward_desc_tv"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
@@ -74,43 +92,6 @@
             android:textColor="@color/gray_33"
             android:textSize="16sp" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="16dp"
-            android:background="@drawable/round_cornor_white_ar_pattern_grid"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:layout_gravity="center"
-                    android:src="@mipmap/ic_hint" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_marginStart="6dp"
-                    android:text="@string/grid_hint"
-                    android:textColor="@color/colorPrimary"
-                    android:textSize="16sp" />
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/grid_hint_tv"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:textColor="@android:color/black"
-                android:textSize="16sp" />
-        </LinearLayout>
     </LinearLayout>
 
     <LinearLayout
@@ -123,14 +104,27 @@
         android:orientation="horizontal">
 
         <TextView
-            android:id="@+id/start_mission_btn"
+            android:id="@+id/already_collect_rewards_btn"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="@drawable/solid_round_rectangle_gray_cc"
+            android:gravity="center"
+            android:scaleType="fitXY"
+            android:text="@string/received"
+            android:textColor="@android:color/white"
+            android:textSize="@dimen/text_size_action_bar"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/collect_rewards_btn"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:background="@drawable/solid_round_rectangle_green_green_stroke"
             android:gravity="center"
-            android:text="@string/start_mission"
+            android:scaleType="fitXY"
+            android:text="@string/receive_reward"
             android:textColor="@android:color/white"
             android:textSize="@dimen/text_size_action_bar"
-            android:visibility="visible" />
+            android:visibility="gone" />
     </LinearLayout>
 </FrameLayout>

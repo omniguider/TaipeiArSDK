@@ -325,7 +325,7 @@ public class DialogTools {
     public void showErrorMessage(Context context, String title, String message, int iconRes, @Nullable DialogInterface.OnDismissListener dismissListener) {
         if (context != null && !((Activity) context).isFinishing()) {
             Dialog dialog = createAlertDialog(context, title, message, iconRes,
-                    context.getResources().getString(R.string.dialog_button_ok_text), new DialogInterface.OnClickListener() {
+                    context.getResources().getString(R.string.confirm), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             dialog.dismiss();
@@ -340,4 +340,5 @@ public class DialogTools {
             dialog.show();
         }
     }
+
 }

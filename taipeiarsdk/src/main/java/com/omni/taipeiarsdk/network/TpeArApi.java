@@ -3,18 +3,18 @@ package com.omni.taipeiarsdk.network;
 import android.app.Activity;
 import android.content.Context;
 import android.location.Location;
-import android.util.Log;
 
 import com.android.volley.Request;
 import com.omni.taipeiarsdk.model.GetWtcFeedback;
 import com.omni.taipeiarsdk.model.UserImageFeedback;
+import com.omni.taipeiarsdk.model.mission.MissionCompleteFeedback;
 import com.omni.taipeiarsdk.model.mission.MissionFeedback;
 import com.omni.taipeiarsdk.model.mission.MissionGridFeedback;
+import com.omni.taipeiarsdk.model.mission.MissionRewardFeedback;
 import com.omni.taipeiarsdk.model.mission.RewardFeedback;
 import com.omni.taipeiarsdk.model.tpe_location.CategoryFeedback;
 import com.omni.taipeiarsdk.model.tpe_location.IndexFeedback;
 import com.omni.taipeiarsdk.model.tpe_location.ThemeFeedback;
-import com.omni.taipeiarsdk.pano.ArPattenFeedback;
 import com.omni.taipeiarsdk.pano.ArPattensFeedback;
 
 import java.io.File;
@@ -147,4 +147,25 @@ public class TpeArApi {
         NetworkManager.getInstance().addJsonRequest(context, Request.Method.GET, url, params, MissionGridFeedback.class, TIMEOUT, listener);
     }
 
+    public void getMissionComplete(Context context, String m_id, String ng_id, String u_id, NetworkManager.NetworkManagerListener<MissionCompleteFeedback> listener) {
+        String url = NetworkManager.TPE_DOMAIN_NAME + "api/get_mission_complete";
+        Map<String, String> params = new HashMap<>();
+        params.put("m_id", m_id);
+        params.put("ng_id", ng_id);
+        params.put("u_id", u_id);
+
+        NetworkManager.getInstance().addJsonRequest(context, Request.Method.GET, url, params, MissionCompleteFeedback.class, TIMEOUT, listener);
+    }
+
+    public void getMissionReward(Context context, String m_id, String u_id,
+                                 String device_id,NetworkManager.NetworkManagerListener<MissionRewardFeedback> listener) {
+
+        String url = NetworkManager.TPE_DOMAIN_NAME + "api/get_mission_reward";
+        Map<String, String> params = new HashMap<>();
+        params.put("m_id", m_id);
+        params.put("u_id", u_id);
+        params.put("device_id", device_id);
+
+        NetworkManager.getInstance().addJsonRequest(context, Request.Method.GET, url, params, MissionRewardFeedback.class, TIMEOUT, listener);
+    }
 }

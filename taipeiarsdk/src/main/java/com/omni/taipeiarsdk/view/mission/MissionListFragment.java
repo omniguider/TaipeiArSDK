@@ -30,12 +30,13 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import static com.omni.taipeiarsdk.TaipeiArSDKActivity.userId;
+
 public class MissionListFragment extends Fragment {
 
     private SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
     private View mView;
     private RecyclerView mRecyclerView;
-    public static String userId = "";
     private String missionId = "";
     private String title = "";
     private String describe = "";
@@ -68,11 +69,6 @@ public class MissionListFragment extends Fragment {
             final LinearLayoutManager mLinearLayoutManager = new LinearLayoutManager(getActivity());
             mLinearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
             mRecyclerView.setLayoutManager(mLinearLayoutManager);
-
-            userId = TaipeiArSDKActivity.userId;
-            if (userId == null || userId.length() == 0) {
-                userId = "Hf1242aaa6"; // not login
-            }
 
             TpeArApi.getInstance().getMission(this.getActivity(),
                     "mission",
@@ -226,6 +222,7 @@ public class MissionListFragment extends Fragment {
                     describe = mMissionFeedback.getData()[pos].getM_describe();
                     verify_code = mMissionFeedback.getData()[pos].getVerify_code();
 
+                    TaipeiArSDKActivity.missionId = missionId;
                     openFragmentPage(NineGridFragment.Companion.newInstance(missionId,
                             title, describe, verify_code), NineGridFragment.TAG);
                 }
