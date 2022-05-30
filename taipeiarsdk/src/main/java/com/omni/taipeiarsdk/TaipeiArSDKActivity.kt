@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
 import android.widget.FrameLayout
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
@@ -157,14 +158,14 @@ class TaipeiArSDKActivity : AppCompatActivity(), LocationListener,
             startActivity(intent)
         }
 
-//        findViewById<TextView>(R.id.ar_recognize).setOnClickListener {
-//            ar_open_by_poi = "false"
-//            sampleData = categories!![6].samples[0] //ar_guide
-//            val intent = Intent(this@TaipeiArSDKActivity, sampleData!!.activityClass)
-//            intent.putExtra(SimpleArActivity.INTENT_EXTRAS_KEY_SAMPLE, sampleData)
-//            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-//            startActivity(intent)
-//        }
+        findViewById<LinearLayout>(R.id.ar_recognize).setOnClickListener {
+            ar_open_by_poi = "false"
+            sampleData = categories!![6].samples[0] //ar_guide
+            val intent = Intent(this@TaipeiArSDKActivity, sampleData!!.activityClass)
+            intent.putExtra(SimpleArActivity.INTENT_EXTRAS_KEY_SAMPLE, sampleData)
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            startActivity(intent)
+        }
 
         findViewById<CardView>(R.id.theme_guide).setOnClickListener {
             openFragmentPage(ThemeGuideFragment.newInstance(), ThemeGuideFragment.TAG)
