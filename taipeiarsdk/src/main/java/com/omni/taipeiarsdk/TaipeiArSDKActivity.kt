@@ -63,6 +63,7 @@ class TaipeiArSDKActivity : AppCompatActivity(), LocationListener,
         lateinit var ng_id: String
     }
 
+    private val ARG_KEY_USERID = "arg_key_userid"
     private val sampleDefinitionsPath = "samples/samples.json"
     private val permissionManager: PermissionManager = ArchitectView.getPermissionManager()
     private var categories: List<SampleCategory>? = null
@@ -135,8 +136,8 @@ class TaipeiArSDKActivity : AppCompatActivity(), LocationListener,
         }
         mEventBus!!.register(this)
 
+        userId = intent.getStringExtra(ARG_KEY_USERID).toString()
         isMission = "false"
-        userId = "Hf1242aaa6"
         ar_open_by_poi = "false"
         filterKeyword = ArrayList()
         filterKeywordCopy = ArrayList()
@@ -160,6 +161,7 @@ class TaipeiArSDKActivity : AppCompatActivity(), LocationListener,
 
         findViewById<LinearLayout>(R.id.ar_recognize).setOnClickListener {
             ar_open_by_poi = "false"
+            isMission = "false"
             sampleData = categories!![6].samples[0] //ar_guide
             val intent = Intent(this@TaipeiArSDKActivity, sampleData!!.activityClass)
             intent.putExtra(SimpleArActivity.INTENT_EXTRAS_KEY_SAMPLE, sampleData)

@@ -37,6 +37,7 @@ public class RewardListFragment extends Fragment {
     public static String title = "";
     public static String describe = "";
     public static int reward_num = 0;
+    private boolean hasReward = false;
     public static RewardFeedback mRewardFeedback;
     private LinearLayout emptyLayout;
     private ArrayList<RewardData> mData = new ArrayList();
@@ -64,11 +65,12 @@ public class RewardListFragment extends Fragment {
                                 mData.clear();
                                 for (int i = 0; i < reward_num; i++) {
                                     if (feedback.getData()[i].getIs_finish()) {
+                                        hasReward = true;
                                         mData.add(feedback.getData()[i]);
                                     }
                                 }
                                 mRecyclerViewAdapter.notifyDataSetChanged();
-                                if (reward_num != 0) {
+                                if (hasReward) {
                                     emptyLayout.setVisibility(View.GONE);
                                 }
                             }
@@ -121,12 +123,13 @@ public class RewardListFragment extends Fragment {
                             reward_num = feedback.getData().length;
                             for (int i = 0; i < reward_num; i++) {
                                 if (feedback.getData()[i].getIs_finish()) {
+                                    hasReward = true;
                                     mData.add(feedback.getData()[i]);
                                 }
                             }
                             mRecyclerViewAdapter = new RecyclerViewAdapter();
                             mRecyclerView.setAdapter(mRecyclerViewAdapter);
-                            if (reward_num != 0) {
+                            if (hasReward) {
                                 emptyLayout.setVisibility(View.GONE);
                             }
                         }
