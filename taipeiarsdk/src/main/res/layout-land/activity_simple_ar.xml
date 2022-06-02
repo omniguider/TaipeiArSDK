@@ -230,30 +230,30 @@
         android:orientation="vertical"
         app:layout_constraintGuide_percent="0.5" />
 
-    <ToggleButton
-        android:id="@+id/move_3d_model"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:layout_marginTop="8dp"
-        android:alpha="0"
-        android:background="@drawable/move_3d_model_selector"
-        android:textOff=""
-        android:textOn=""
-        app:layout_constraintEnd_toStartOf="@+id/guideline63"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+    <!--    <ToggleButton-->
+    <!--        android:id="@+id/move_3d_model"-->
+    <!--        android:layout_width="32dp"-->
+    <!--        android:layout_height="32dp"-->
+    <!--        android:layout_marginTop="8dp"-->
+    <!--        android:alpha="0"-->
+    <!--        android:background="@drawable/move_3d_model_selector"-->
+    <!--        android:textOff=""-->
+    <!--        android:textOn=""-->
+    <!--        app:layout_constraintEnd_toStartOf="@+id/guideline63"-->
+    <!--        app:layout_constraintTop_toBottomOf="@+id/toolbar" />-->
 
-    <ToggleButton
-        android:id="@+id/rotate_3d_model"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:layout_marginTop="8dp"
-        android:alpha="0"
-        android:background="@drawable/rotate_3d_model_selector"
-        android:checked="true"
-        android:textOff=""
-        android:textOn=""
-        app:layout_constraintStart_toStartOf="@+id/guideline63"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+    <!--    <ToggleButton-->
+    <!--        android:id="@+id/rotate_3d_model"-->
+    <!--        android:layout_width="32dp"-->
+    <!--        android:layout_height="32dp"-->
+    <!--        android:layout_marginTop="8dp"-->
+    <!--        android:alpha="0"-->
+    <!--        android:background="@drawable/rotate_3d_model_selector"-->
+    <!--        android:checked="true"-->
+    <!--        android:textOff=""-->
+    <!--        android:textOn=""-->
+    <!--        app:layout_constraintStart_toStartOf="@+id/guideline63"-->
+    <!--        app:layout_constraintTop_toBottomOf="@+id/toolbar" />-->
 
     <ImageView
         android:id="@+id/reset_3d_model"
@@ -270,71 +270,71 @@
 
     <ImageView
         android:id="@+id/interactive_3d_model"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
+        android:layout_marginTop="36dp"
+        android:layout_marginEnd="16dp"
         android:alpha="0"
-        android:src="@mipmap/btn_action_g"
-        app:layout_constraintEnd_toStartOf="@+id/guideline60"
+        android:src="@mipmap/ic_interactive"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@+id/guideline60"
         app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
-    <ImageView
-        android:id="@+id/rescan_video"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="32dp"
-        android:alpha="0"
-        android:elevation="6dp"
-        android:src="@mipmap/btn_scan"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/guideline53"
-        app:layout_constraintStart_toStartOf="@+id/guideline53" />
+    <!--    <ImageView-->
+    <!--        android:id="@+id/rescan_video"-->
+    <!--        android:layout_width="32dp"-->
+    <!--        android:layout_height="32dp"-->
+    <!--        android:layout_marginStart="8dp"-->
+    <!--        android:layout_marginEnd="8dp"-->
+    <!--        android:layout_marginBottom="32dp"-->
+    <!--        android:alpha="0"-->
+    <!--        android:elevation="6dp"-->
+    <!--        android:src="@mipmap/btn_scan"-->
+    <!--        app:layout_constraintBottom_toBottomOf="parent"-->
+    <!--        app:layout_constraintEnd_toStartOf="@+id/guideline53"-->
+    <!--        app:layout_constraintStart_toStartOf="@+id/guideline53" />-->
 
-    <ImageView
-        android:id="@+id/rescan"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="32dp"
-        android:alpha="0"
-        android:elevation="6dp"
-        android:src="@mipmap/btn_scan"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/guideline53"
-        app:layout_constraintStart_toStartOf="@+id/guideline53" />
+    <!--    <ImageView-->
+    <!--        android:id="@+id/rescan"-->
+    <!--        android:layout_width="32dp"-->
+    <!--        android:layout_height="32dp"-->
+    <!--        android:layout_marginStart="8dp"-->
+    <!--        android:layout_marginEnd="8dp"-->
+    <!--        android:layout_marginBottom="32dp"-->
+    <!--        android:alpha="0"-->
+    <!--        android:elevation="6dp"-->
+    <!--        android:src="@mipmap/btn_scan"-->
+    <!--        app:layout_constraintBottom_toBottomOf="parent"-->
+    <!--        app:layout_constraintEnd_toStartOf="@+id/guideline53"-->
+    <!--        app:layout_constraintStart_toStartOf="@+id/guideline53" />-->
 
-    <ImageView
-        android:id="@+id/take_photo"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        android:alpha="0"
-        android:elevation="6dp"
-        android:src="@mipmap/btn_cam_w"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/guideline60"
-        app:layout_constraintStart_toStartOf="@+id/guideline60"
-        app:layout_constraintTop_toTopOf="parent" />
+    <!--    <ImageView-->
+    <!--        android:id="@+id/take_photo"-->
+    <!--        android:layout_width="60dp"-->
+    <!--        android:layout_height="60dp"-->
+    <!--        android:layout_marginStart="8dp"-->
+    <!--        android:layout_marginEnd="8dp"-->
+    <!--        android:alpha="0"-->
+    <!--        android:elevation="6dp"-->
+    <!--        android:src="@mipmap/btn_cam_w"-->
+    <!--        app:layout_constraintBottom_toBottomOf="parent"-->
+    <!--        app:layout_constraintEnd_toStartOf="@+id/guideline60"-->
+    <!--        app:layout_constraintStart_toStartOf="@+id/guideline60"-->
+    <!--        app:layout_constraintTop_toTopOf="parent" />-->
 
-    <ImageView
-        android:id="@+id/switch_cam"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:layout_marginBottom="32dp"
-        android:alpha="0"
-        android:elevation="6dp"
-        android:src="@mipmap/btn_cam_shift_w"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/guideline60"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/guideline60" />
+    <!--    <ImageView-->
+    <!--        android:id="@+id/switch_cam"-->
+    <!--        android:layout_width="32dp"-->
+    <!--        android:layout_height="32dp"-->
+    <!--        android:layout_marginBottom="32dp"-->
+    <!--        android:alpha="0"-->
+    <!--        android:elevation="6dp"-->
+    <!--        android:src="@mipmap/btn_cam_shift_w"-->
+    <!--        app:layout_constraintBottom_toBottomOf="parent"-->
+    <!--        app:layout_constraintEnd_toStartOf="@+id/guideline60"-->
+    <!--        app:layout_constraintHorizontal_bias="0.0"-->
+    <!--        app:layout_constraintStart_toStartOf="@+id/guideline60" />-->
 
     <TextView
         android:id="@+id/back_tv"
@@ -466,4 +466,92 @@
             android:scaleType="fitXY"
             android:src="@mipmap/info_ar_navi" />
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <FrameLayout
+        android:id="@+id/scan_fl"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:gravity="center"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/guideline63">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="bottom|center_horizontal"
+            android:background="@mipmap/bg_ar_scan"
+            android:orientation="horizontal"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp">
+
+            <ImageView
+                android:id="@+id/rescan_video"
+                android:layout_width="0dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:layout_marginEnd="36dp"
+                android:layout_weight="1"
+                android:src="@mipmap/ic_rescan"
+                android:visibility="gone" />
+
+            <ImageView
+                android:id="@+id/rescan"
+                android:layout_width="0dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:layout_marginEnd="36dp"
+                android:layout_weight="1"
+                android:src="@mipmap/ic_rescan" />
+
+            <ImageView
+                android:id="@+id/switch_cam"
+                android:layout_width="0dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:layout_marginStart="36dp"
+                android:layout_weight="1"
+                android:src="@mipmap/ic_switch_camera" />
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/take_photo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:src="@mipmap/ic_capture" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:id="@+id/interactive_fl"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/solid_round_rectangle_gray_e6"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbar">
+
+        <ToggleButton
+            android:id="@+id/move_3d_model"
+            android:layout_width="55dp"
+            android:layout_height="50dp"
+            android:background="@drawable/move_3d_model_selector"
+            android:textOff=""
+            android:textOn="" />
+
+        <ToggleButton
+            android:id="@+id/rotate_3d_model"
+            android:layout_width="55dp"
+            android:layout_height="50dp"
+            android:background="@drawable/rotate_3d_model_selector"
+            android:checked="true"
+            android:textOff=""
+            android:textOn="" />
+    </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

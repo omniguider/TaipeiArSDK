@@ -159,12 +159,14 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
     private ImageView focus_hint4;
     private ToggleButton move_3d_model;
     private ToggleButton rotate_3d_model;
+    private LinearLayout interactive_fl;
     private ImageView interactive;
     private ImageView reset;
     private ImageView rescan;
     private ImageView rescanVideo;
     private ImageView takePhoto;
     private ImageView switch_cam;
+    private FrameLayout scan_fl;
     private MaterialButton mission_ar_recognized;
     private ConstraintLayout introView;
     private boolean introIsShowing = false;
@@ -638,12 +640,14 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
         focus_hint4 = findViewById(R.id.focus_img4);
         move_3d_model = findViewById(R.id.move_3d_model);
         rotate_3d_model = findViewById(R.id.rotate_3d_model);
+        interactive_fl = findViewById(R.id.interactive_fl);
         interactive = findViewById(R.id.interactive_3d_model);
         reset = findViewById(R.id.reset_3d_model);
         rescan = findViewById(R.id.rescan);
         rescanVideo = findViewById(R.id.rescan_video);
         takePhoto = findViewById(R.id.take_photo);
         switch_cam = findViewById(R.id.switch_cam);
+        scan_fl = findViewById(R.id.scan_fl);
         introView = findViewById(R.id.intro_view);
         back_tv = findViewById(R.id.back_tv);
         back_tv.setOnClickListener(mOnClickListener);
@@ -792,13 +796,17 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
         rescan.setOnClickListener(mOnClickListener);
         takePhoto.setOnClickListener(mOnClickListener);
         switch_cam.setOnClickListener(mOnClickListener);
-        move_3d_model.setAlpha(1f);
-        rotate_3d_model.setAlpha(1f);
-        interactive.setAlpha(1f);
+//        move_3d_model.setAlpha(1f);
+//        rotate_3d_model.setAlpha(1f);
+        if (TestExtension.interactive_url.length() != 0)
+            interactive.setAlpha(1f);
 //        reset.setAlpha(1f);
-        rescan.setAlpha(1f);
-        takePhoto.setAlpha(1f);
-        switch_cam.setAlpha(1f);
+//        rescan.setAlpha(1f);
+//        takePhoto.setAlpha(1f);
+//        switch_cam.setAlpha(1f);
+
+        interactive_fl.setVisibility(View.VISIBLE);
+        scan_fl.setVisibility(View.VISIBLE);
     }
 
     public void hideToolButtons() {
@@ -808,32 +816,43 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
         rescan.setOnClickListener(null);
         takePhoto.setOnClickListener(null);
         switch_cam.setOnClickListener(null);
-        move_3d_model.setAlpha(0f);
-        rotate_3d_model.setAlpha(0f);
+//        move_3d_model.setAlpha(0f);
+//        rotate_3d_model.setAlpha(0f);
         interactive.setAlpha(0f);
 //        reset.setAlpha(0f);
-        rescan.setAlpha(0f);
-        takePhoto.setAlpha(0f);
-        switch_cam.setAlpha(0f);
+//        rescan.setAlpha(0f);
+//        takePhoto.setAlpha(0f);
+//        switch_cam.setAlpha(0f);
+
+        interactive_fl.setVisibility(View.GONE);
+        scan_fl.setVisibility(View.GONE);
     }
 
     public void showRescanButton() {
         rescanVideo.setOnClickListener(mOnClickListener);
-        rescanVideo.setAlpha(1f);
+//        rescanVideo.setAlpha(1f);
 
         takePhoto.setOnClickListener(mOnClickListener);
         switch_cam.setOnClickListener(mOnClickListener);
-        takePhoto.setAlpha(1f);
-        switch_cam.setAlpha(1f);
+//        takePhoto.setAlpha(1f);
+//        switch_cam.setAlpha(1f);
+
+        scan_fl.setVisibility(View.VISIBLE);
+        rescanVideo.setVisibility(View.VISIBLE);
+        rescan.setVisibility(View.GONE);
     }
 
     public void hideRescanButton() {
-        rescanVideo.setAlpha(0f);
+//        rescanVideo.setAlpha(0f);
 
         takePhoto.setOnClickListener(null);
         switch_cam.setOnClickListener(null);
-        takePhoto.setAlpha(0f);
-        switch_cam.setAlpha(0f);
+//        takePhoto.setAlpha(0f);
+//        switch_cam.setAlpha(0f);
+
+        scan_fl.setVisibility(View.GONE);
+        rescanVideo.setVisibility(View.GONE);
+        rescan.setVisibility(View.VISIBLE);
     }
 
     public void showPatternHint() {
