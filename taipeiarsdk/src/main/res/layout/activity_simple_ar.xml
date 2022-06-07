@@ -466,6 +466,35 @@
             android:src="@mipmap/info_ar_navi" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
+    <SeekBar
+        android:id="@+id/seekBar"
+        android:layout_width="126dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="6dp"
+        android:layout_marginTop="186dp"
+        android:max="100"
+        android:progress="29"
+        android:progressDrawable="@drawable/progress_layer"
+        android:splitTrack="false"
+        android:thumb="@mipmap/ic_thumb"
+        android:thumbTintMode="multiply"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/toolbar" />
+
+    <TextView
+        android:id="@+id/range_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:textColor="@color/colorPrimary"
+        android:textSize="14sp"
+        android:text="範圍：2.00 km"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="@+id/seekBar"
+        app:layout_constraintStart_toStartOf="@+id/seekBar"
+        app:layout_constraintTop_toBottomOf="@+id/seekBar" />
+
     <FrameLayout
         android:id="@+id/scan_fl"
         android:layout_width="match_parent"

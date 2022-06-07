@@ -79,4 +79,5 @@
     <string name="mission_complete">完成任務</string>
     <string name="receive_reward_hint">請交由工作人員點擊「 確定 」才能領取獎勵，或放置獎勵區</string>
     <string name="reward_postpone">放置獎勵區</string>
+    <string name="range">範圍：%s km</string>
 </resources>

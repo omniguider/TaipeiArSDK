@@ -43,7 +43,7 @@ var World = {
         World.refreshMarkerView();
 	},
 
-     refreshMarkerView: function refreshMarkerViewFn()
+     refreshMarkerView: function refreshMarkerViewFn(range)
      {
         console.info('refreshMarkerView');
          /* Destroys all existing AR-Objects (markers & radar). */
@@ -148,17 +148,18 @@ var World = {
 
          // loop through POI-information and create an AR.GeoObject (=Marker) per POI
          World.showPlaceNr = 0;
-         for (var index = 0; index < World.POIData.length && World.markerList.length < 10 ; index++)
+         for (var index = 0; index < World.POIData.length ; index++)
          {
              var location = new AR.GeoLocation(parseFloat(World.POIData[index].latitude),
                                                parseFloat(World.POIData[index].longitude));
              var distance = location.distanceToUser();
 
-             //只顯示1公里內POI
-//             if (distance > 1000 && World.POIData[index].selected == "false")
-//             {
-//                 continue;
-//             }
+            console.info('range '+range);
+             //只顯示range公里內POI
+             if (distance > range)
+             {
+                 continue;
+             }
 
              //設定高度
 //             var altitude = 5*index + 5;

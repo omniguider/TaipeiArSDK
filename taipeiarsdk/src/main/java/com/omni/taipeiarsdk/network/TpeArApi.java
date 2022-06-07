@@ -100,7 +100,7 @@ public class TpeArApi {
         params.put("type", type);
         params.put("user_lat", String.valueOf(mLastLocation.getLatitude()));
         params.put("user_lng", String.valueOf(mLastLocation.getLongitude()));
-        params.put("radius", "2");
+        params.put("radius", "7");
 
         NetworkManager.getInstance().addJsonRequest(context, Request.Method.GET, url, params, IndexFeedback.class, TIMEOUT, listener);
     }

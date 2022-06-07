@@ -38,6 +38,7 @@ import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -92,6 +93,7 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -139,6 +141,8 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
      */
     protected ArchitectView architectView;
 
+    private double rangeMin = 0;
+    private double rangeMax = 7;
     /**
      * The path to the AR-Experience. This is usually the path to its index.html.
      */
@@ -207,6 +211,8 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
     private GridData[] mGridData;
     private IndexPoi indexPoi = null;
     private boolean currentGridPass = false;
+    private SeekBar mSeekBar;
+    private TextView range_tv;
 
     private List<SampleCategory> categories;
     private static final String sampleDefinitionsPath = "samples/samples.json";
@@ -314,6 +320,12 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
                         if (mIndexPOI == null)
                             mIndexPOI = feedback.getPoi();
                         addPOIMarkers(mIndexPOI);
+
+                        if (!getIntent().hasExtra(INTENT_EXTRAS_KEY_THEME_DATA) &&
+                                !getIntent().hasExtra(INTENT_EXTRAS_KEY_MISSION_DATA)) {
+                            updatePOIMarkers(2000);
+                            architectView.callJavascript("World.refreshMarkerView(" + 2000 + ")");
+                        }
                     }
 
                     @Override
@@ -351,6 +363,26 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
                     .position(new LatLng(Double.parseDouble(indexPoi.getLat()),
                             Double.parseDouble(indexPoi.getLng())))
                     .zIndex(TaipeiArSDKText.MARKER_Z_INDEX));
+        }
+    }
+
+    private void updatePOIMarkers(double distance) {
+        Log.e("LOG", "updatePOIMarkers" + distance);
+        mMap.clear();
+        mUserMarker = null;
+        showUserPosition();
+        for (IndexPoi indexPoi : mIndexPOI) {
+            if (getDistance(Double.parseDouble(indexPoi.getLat()),
+                    Double.parseDouble(indexPoi.getLng()),
+                    mLastLocation.getLatitude(), mLastLocation.getLongitude()) < distance) {
+                mMap.addMarker(new MarkerOptions()
+                        .flat(false)
+                        .title(indexPoi.getName())
+                        .icon(BitmapDescriptorFactory.fromResource(R.mipmap.poi_marker))
+                        .position(new LatLng(Double.parseDouble(indexPoi.getLat()),
+                                Double.parseDouble(indexPoi.getLng())))
+                        .zIndex(TaipeiArSDKText.MARKER_Z_INDEX));
+            }
         }
     }
 
@@ -656,15 +688,22 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
         ar_img_btn_tv = findViewById(R.id.activity_simple_ar_img_btn);
         ar_img_support_btn_tv = findViewById(R.id.activity_simple_ar_img_support_btn);
         position = findViewById(R.id.activity_simple_position);
+        mSeekBar = findViewById(R.id.seekBar);
+        mSeekBar.setOnSeekBarChangeListener(seekBarOnSeekBarChange);
+        range_tv = findViewById(R.id.range_tv);
 
         back_fl.setOnClickListener(mOnClickListener);
         intro.setOnClickListener(mOnClickListener);
 
         if (intent.hasExtra(INTENT_EXTRAS_KEY_THEME_TITLE)) {
             title.setText((CharSequence) intent.getSerializableExtra(INTENT_EXTRAS_KEY_THEME_TITLE));
+            mSeekBar.setVisibility(View.GONE);
+            range_tv.setVisibility(View.GONE);
         }
         if (intent.hasExtra(INTENT_EXTRAS_KEY_MISSION_TITLE)) {
             title.setText((CharSequence) intent.getSerializableExtra(INTENT_EXTRAS_KEY_MISSION_TITLE));
+            mSeekBar.setVisibility(View.GONE);
+            range_tv.setVisibility(View.GONE);
         }
 
         mMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.activity_simple_ar_map);
@@ -672,6 +711,8 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
             mMapFragment.getView().setVisibility(View.GONE);
             position.setVisibility(View.GONE);
             intro.setVisibility(View.GONE);
+            mSeekBar.setVisibility(View.GONE);
+            range_tv.setVisibility(View.GONE);
             if (isMission.equals("true"))
                 title.setText(getString(R.string.mission));
             else
@@ -1443,4 +1484,24 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
         if (value < 0) value += 360f;
         return value - 90f;
     }
+
+    DecimalFormat precision = new DecimalFormat("0.00");
+    private final SeekBar.OnSeekBarChangeListener seekBarOnSeekBarChange = new SeekBar.OnSeekBarChangeListener() {
+        @Override
+        public void onStopTrackingTouch(SeekBar seekBar) {
+            Log.e("LOG", "onStopTrackingTouch getProgress" + seekBar.getProgress());
+            double range = (rangeMin + seekBar.getProgress() * rangeMax * 0.01) * 1000;
+            range_tv.setText(String.format(getString(R.string.range), precision.format(range / 1000)));
+            updatePOIMarkers(range);
+            architectView.callJavascript("World.refreshMarkerView(" + range + ")");
+        }
+
+        @Override
+        public void onStartTrackingTouch(SeekBar seekBar) {
+        }
+
+        @Override
+        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+        }
+    };
 }
