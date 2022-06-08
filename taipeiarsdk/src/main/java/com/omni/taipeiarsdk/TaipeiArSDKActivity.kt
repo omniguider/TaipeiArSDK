@@ -11,6 +11,7 @@ import android.provider.Settings
 import android.util.Log
 import android.widget.FrameLayout
 import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
@@ -150,6 +151,14 @@ class TaipeiArSDKActivity : AppCompatActivity(), LocationListener,
         categories = SampleJsonParser.getCategoriesFromJsonString(json)
         sampleData = categories!![9].samples[1] //ar_guide
 
+        findViewById<TextView>(R.id.modelAtGeoLocation).setOnClickListener {
+            sampleData = categories!![6].samples[5]
+            val intent = Intent(this@TaipeiArSDKActivity, sampleData!!.activityClass)
+            intent.putExtra(SimpleArActivity.INTENT_EXTRAS_KEY_SAMPLE, sampleData)
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            startActivity(intent)
+        }
+
         findViewById<CardView>(R.id.ar_guide).setOnClickListener {
             mIndexPOI = emptyArray()
             sampleData = categories!![9].samples[1] //ar_guide
@@ -162,7 +171,7 @@ class TaipeiArSDKActivity : AppCompatActivity(), LocationListener,
         findViewById<LinearLayout>(R.id.ar_recognize).setOnClickListener {
             ar_open_by_poi = "false"
             isMission = "false"
-            sampleData = categories!![6].samples[0] //ar_guide
+            sampleData = categories!![6].samples[0]
             val intent = Intent(this@TaipeiArSDKActivity, sampleData!!.activityClass)
             intent.putExtra(SimpleArActivity.INTENT_EXTRAS_KEY_SAMPLE, sampleData)
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)

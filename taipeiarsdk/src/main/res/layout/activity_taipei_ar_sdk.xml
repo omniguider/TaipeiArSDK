@@ -428,4 +428,18 @@
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/modelAtGeoLocation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:visibility="gone"
+        android:layout_marginTop="72dp"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/round_corner_green"
+        android:padding="8dp"
+        android:text="3dModelAtGeoLocation"
+        android:textColor="@android:color/white"
+        android:textSize="16sp" />
 </FrameLayout>

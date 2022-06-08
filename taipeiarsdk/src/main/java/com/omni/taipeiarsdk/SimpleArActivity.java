@@ -246,9 +246,6 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
                         detectArMission();
                 }
 
-                Log.e("LOG", "getDistance" +
-                        getDistance(mLastLocation.getLatitude(), mLastLocation.getLongitude(),
-                                updateMarkerLocation.getLatitude(), updateMarkerLocation.getLongitude()));
                 if (getDistance(mLastLocation.getLatitude(), mLastLocation.getLongitude(),
                         updateMarkerLocation.getLatitude(), updateMarkerLocation.getLongitude()) > 10) {
                     updateMarkerLocation.setLatitude(mLastLocation.getLatitude());
