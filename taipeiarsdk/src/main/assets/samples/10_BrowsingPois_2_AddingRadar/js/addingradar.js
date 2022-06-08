@@ -35,12 +35,14 @@ var World = {
 	POIData: [],
 
 	// called to inject new POI data
-	loadPoisFromJsonData: function loadPoisFromJsonDataFn(poiData) {
+	loadPoisFromJsonData: function loadPoisFromJsonDataFn(poiData, refresh) {
 	    console.info('loadPoisFromJsonData');
         World.POIData = poiData;
         console.info('name: ' + poiData[0].name);
 
-        World.refreshMarkerView();
+        if(refresh){
+            World.refreshMarkerView();
+        }
 	},
 
      refreshMarkerView: function refreshMarkerViewFn(range)
@@ -153,7 +155,7 @@ var World = {
              var location = new AR.GeoLocation(parseFloat(World.POIData[index].latitude),
                                                parseFloat(World.POIData[index].longitude));
              var distance = location.distanceToUser();
-
+            console.info('distance '+distance);
             console.info('range '+range);
              //只顯示range公里內POI
              if (distance > range)

@@ -186,6 +186,7 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
     private EventBus mEventBus;
     private SupportMapFragment mMapFragment;
     private Location mLastLocation;
+    private Location updateMarkerLocation;
     private boolean mIsMapInited = false;
     private GoogleMap mMap;
     private Marker mUserMarker;
@@ -213,6 +214,7 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
     private boolean currentGridPass = false;
     private SeekBar mSeekBar;
     private TextView range_tv;
+    private double range = 2000;
 
     private List<SampleCategory> categories;
     private static final String sampleDefinitionsPath = "samples/samples.json";
@@ -223,6 +225,9 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
         switch (event.getType()) {
             case OmniEvent.TYPE_USER_AR_LOCATION:
                 mLastLocation = (Location) event.getObj();
+                if (updateMarkerLocation == null) {
+                    updateMarkerLocation = (Location) event.getObj();
+                }
 
                 GeomagneticField field = new GeomagneticField(
                         (float) mLastLocation.getLatitude(),
@@ -239,6 +244,21 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
                             indexPoi.getAr_trigger().getActive_method().equals("0") &&
                             !currentGridPass)
                         detectArMission();
+                }
+
+                Log.e("LOG", "getDistance" +
+                        getDistance(mLastLocation.getLatitude(), mLastLocation.getLongitude(),
+                                updateMarkerLocation.getLatitude(), updateMarkerLocation.getLongitude()));
+                if (getDistance(mLastLocation.getLatitude(), mLastLocation.getLongitude(),
+                        updateMarkerLocation.getLatitude(), updateMarkerLocation.getLongitude()) > 10) {
+                    updateMarkerLocation.setLatitude(mLastLocation.getLatitude());
+                    updateMarkerLocation.setLongitude(mLastLocation.getLongitude());
+                    if (!getIntent().hasExtra(INTENT_EXTRAS_KEY_THEME_DATA) &&
+                            !getIntent().hasExtra(INTENT_EXTRAS_KEY_MISSION_DATA)) {
+                        architectView.callJavascript("World.refreshMarkerView(" + range + ")");
+                    } else {
+                        architectView.callJavascript("World.refreshMarkerView()");
+                    }
                 }
                 break;
             case OmniEvent.TYPE_USER_AR_INTERACTIVE_TEXT:
@@ -1490,7 +1510,7 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
         @Override
         public void onStopTrackingTouch(SeekBar seekBar) {
             Log.e("LOG", "onStopTrackingTouch getProgress" + seekBar.getProgress());
-            double range = (rangeMin + seekBar.getProgress() * rangeMax * 0.01) * 1000;
+            range = (rangeMin + seekBar.getProgress() * rangeMax * 0.01) * 1000;
             range_tv.setText(String.format(getString(R.string.range), precision.format(range / 1000)));
             updatePOIMarkers(range);
             architectView.callJavascript("World.refreshMarkerView(" + range + ")");

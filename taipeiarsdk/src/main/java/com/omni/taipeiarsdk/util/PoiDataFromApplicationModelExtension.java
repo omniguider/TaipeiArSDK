@@ -26,6 +26,7 @@ public class PoiDataFromApplicationModelExtension extends ArchitectViewExtension
 
     private static Topic[] topics;
     private static IndexPoi[] indexPois;
+    private static boolean refresh = false;
 
     public PoiDataFromApplicationModelExtension(Activity activity, ArchitectView architectView) {
         super(activity, architectView);
@@ -83,10 +84,13 @@ public class PoiDataFromApplicationModelExtension extends ArchitectViewExtension
         final String ATTR_FINISHED = "gridFinished";
 
 //        topics = indexFeedback.getData().getTopic();
-        if (TaipeiArSDKActivity.mIndexPOI.length == 0)
+        if (TaipeiArSDKActivity.mIndexPOI.length == 0) {
             indexPois = indexFeedback.getPoi();
-        else
+            refresh = false;
+        }else {
             indexPois = TaipeiArSDKActivity.mIndexPOI;
+            refresh = true;
+        }
 
         // generates dataSize POIs
 //        for (Topic topic : topics) {
@@ -138,7 +142,9 @@ public class PoiDataFromApplicationModelExtension extends ArchitectViewExtension
                         @Override
                         public void onSucceed(IndexFeedback feedback) {
                             final JSONArray jsonArray = generateTopicPoiInformation(feedback);
-                            architectView.callJavascript("World.loadPoisFromJsonData(" + jsonArray.toString() + ")"); // Triggers the loadPoisFromJsonData function
+                            architectView.callJavascript("World.loadPoisFromJsonData(" +
+                                    jsonArray.toString() +
+                                     "," + refresh + ")"); // Triggers the loadPoisFromJsonData function
                             injectedPois = true; // avoiding loading pois again
                         }
 
