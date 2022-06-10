@@ -146,7 +146,7 @@ public class ScreenshotSaverExtension extends ArchitectViewExtension implements 
                 File filePath = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + File.separator + "TaipeiAR");
                 filePath.mkdirs();
                 final FileOutputStream out;
-                if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     ContentResolver resolver = activity.getApplicationContext().getContentResolver();
                     ContentValues contentValues = new ContentValues();
                     contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, "screenCapture_" + System.currentTimeMillis() + ".jpg");

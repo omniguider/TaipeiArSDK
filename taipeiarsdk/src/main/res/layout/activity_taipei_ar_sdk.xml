@@ -434,12 +434,15 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="end"
-        android:visibility="gone"
         android:layout_marginTop="72dp"
         android:layout_marginEnd="16dp"
         android:background="@drawable/round_corner_green"
-        android:padding="8dp"
-        android:text="3dModelAtGeoLocation"
+        android:paddingStart="24dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="8dp"
+        android:text="@string/ar_experience"
         android:textColor="@android:color/white"
-        android:textSize="16sp" />
+        android:textSize="16sp"
+        android:visibility="visible" />
 </FrameLayout>

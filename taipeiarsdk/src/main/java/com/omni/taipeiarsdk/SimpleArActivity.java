@@ -169,6 +169,7 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
     private ImageView rescan;
     private ImageView rescanVideo;
     private ImageView takePhoto;
+    private ImageView takePhotoExp;
     private ImageView switch_cam;
     private FrameLayout scan_fl;
     private MaterialButton mission_ar_recognized;
@@ -708,6 +709,7 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
         mSeekBar = findViewById(R.id.seekBar);
         mSeekBar.setOnSeekBarChangeListener(seekBarOnSeekBarChange);
         range_tv = findViewById(R.id.range_tv);
+        takePhotoExp = findViewById(R.id.take_photo_ar_experience);
 
         back_fl.setOnClickListener(mOnClickListener);
         intro.setOnClickListener(mOnClickListener);
@@ -736,6 +738,13 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
                 title.setText(getString(R.string.ar_scan));
         } else {
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        }
+
+        if (arExperience.contains("07_3dModels_6_3dModelAtGeoLocation")) {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+            title.setText(getString(R.string.ar_experience));
+            takePhotoExp.setOnClickListener(mOnClickListener);
+            takePhotoExp.setVisibility(View.VISIBLE);
         }
 
         position.setOnClickListener(new View.OnClickListener() {
@@ -1172,7 +1181,7 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
                 hideRescanButton();
                 architectView.callJavascript("World.switchCamToBack();");
                 architectView.callJavascript("World.createOverlays();");
-            } else if (view.getId() == takePhoto.getId()) {
+            } else if (view.getId() == takePhoto.getId() || view.getId() == takePhotoExp.getId()) {
                 Log.e(TAG, "takePhoto was clicked");
                 architectView.captureScreen(CAPTURE_MODE_CAM_AND_WEBVIEW, new ArchitectView.CaptureScreenCallback() {
                     @Override
@@ -1217,7 +1226,7 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
                 filePath.mkdirs();
                 final FileOutputStream out;
 
-                if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     ContentResolver resolver = getContentResolver();
                     ContentValues contentValues = new ContentValues();
                     contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, "screenCapture_" + System.currentTimeMillis() + ".jpg");
