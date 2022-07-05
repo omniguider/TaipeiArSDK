@@ -411,6 +411,111 @@ var World = {
 //    	}
     },
 
+    createPositionable3D: function createPositionable3DFn(angle, view_size) {
+            console.info('doing 3D Positionable');
+            var scaleValue = parseFloat(0.4);
+            var rotationValues = 0.0;
+            var model = new AR.Model("assets/tyrannosaurus.wt3", {
+                    onError: World.onError,
+                    scale: {
+                        x: scaleValue,
+                        y: scaleValue,
+                        z: scaleValue
+                    },
+                    translate: {
+                        x: 0.0,
+                        y: 0.0,
+                        z: -0.3
+                    },
+                    rotate: {
+                        x: 45,
+                        y: 270,
+                        z: 270
+                    },
+                    onClick: function() {
+                        console.log("model, onClick:" + World.myAnimation.isRunning());
+                        if (!World.dragged) {
+                            if (World.myAnimation.isRunning()) {
+                                World.myAnimation.pause();
+                            } else {
+                                World.myAnimation.resume();
+                            }
+                        } else {
+                            World.dragged = false;
+                        }
+                    },
+                    onScaleChanged: function(scale) {
+                        var s = scaleValue * scale;
+                        this.scale = {x: s, y: s, z: s};
+                    },
+                    onScaleEnded: function(scale) {
+                        scaleValue = this.scale.x;
+                    },
+                    onDragChanged: function(x, y) {
+                            var movement = {
+                                x: 0,
+                                y: 0
+                            };
+                            movement.x = World.previousDragValue.x - x;
+                            movement.y = World.previousDragValue.y - y;
+                         if (World.rotating) {
+                            this.rotate.z += (Math.cos(this.rotate.y * Math.PI / 180) * movement.x *
+                                -1 + Math.sin(this.rotate.y * Math.PI / 180) * movement.y) * 180;
+                            this.rotate.x += (Math.cos(this.rotate.y * Math.PI / 180) * movement.y +
+                                Math.sin(this.rotate.y * Math.PI / 180) * movement.x) * -180;
+                        } else if (World.moving) {
+                            this.translate.x -= movement.x;
+                            this.translate.y += movement.y;
+                        }
+                            World.previousDragValue.x = x;
+                            World.previousDragValue.y = y;
+                            console.log("model, onDragChanged:" + x + "," + y + " model is rotating:" + World.rotating + " model is moving:" + World.moving);
+                        World.dragged = true;
+                    },
+                    onDragEnded: function( /*x, y*/ ) {
+                        World.previousDragValue.x = 0;
+                        World.previousDragValue.y = 0;
+                        World.dragged = false;
+                    },
+                    onRotationChanged: function(angleInDegrees) {
+                        this.rotate.z = previousRotationValue - angleInDegrees;
+                    },
+                    onRotationEnded: function( /*angleInDegrees*/ ) {
+                        previousRotationValue = this.rotate.z
+                    },
+                    onLoaded: function() {
+                        console.log("model, onLoaded");
+                        World.modelIsLoaded();
+                        AR.platform.sendJSONObject({
+                            action: "hidePatternHint"
+                        });
+                        AR.platform.sendJSONObject({
+                            action: "showToolButtons"
+                        });
+                        World.myAnimation.start(500);
+                    }
+                });
+
+            if (World.myAnimation == null){
+                this.myAnimation = new AR.ModelAnimation(model, "Animation_00", {
+                    onStart: function() {
+                        console.log("onStart");
+                    },
+                    onFinish: function() {
+                        console.log("onFinish");
+                    }
+                });
+            }
+            this.positionable = new AR.Positionable("myPositionable", {
+                drawables: {
+                    cam: model
+                },
+                snapToScreen: {
+                    snapContainer: document.getElementById('snapContainer')
+                },
+            });
+    },
+
     createOverlaysImg: function createOverlaysImgFn(uri) {
 
                 console.info('doing image overlay');

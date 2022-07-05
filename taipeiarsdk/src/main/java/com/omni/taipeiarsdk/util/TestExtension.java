@@ -17,6 +17,7 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -48,6 +49,7 @@ import java.util.Arrays;
 import static com.omni.taipeiarsdk.TaipeiArSDKActivity.isMission;
 import static com.omni.taipeiarsdk.TaipeiArSDKActivity.missionId;
 import static com.omni.taipeiarsdk.TaipeiArSDKActivity.ng_id;
+import static com.omni.taipeiarsdk.TaipeiArSDKActivity.ng_title;
 import static com.omni.taipeiarsdk.TaipeiArSDKActivity.userId;
 import static com.wikitude.architect.ArchitectView.CaptureScreenCallback.CAPTURE_MODE_CAM;
 
@@ -246,7 +248,9 @@ public class TestExtension extends ArchitectViewExtension implements ArchitectJa
                                 }
 
                                 if (isMission.equals("true")) {
-                                    showCompleteMessage();
+//                                    showCompleteMessage();
+                                    showHintMessage(String.format(activity.getString(R.string.break_through), ng_title),
+                                            activity.getString(R.string.congratulation));
                                     TpeArApi.getInstance().getMissionComplete(activity,
                                             missionId, ng_id, userId,
                                             new NetworkManager.NetworkManagerListener<MissionCompleteFeedback>() {
@@ -272,6 +276,23 @@ public class TestExtension extends ArchitectViewExtension implements ArchitectJa
 
                 });
 
+    }
+
+    public void showHintMessage(String title, String content) {
+        View view = LayoutInflater.from(activity).inflate(R.layout.dialog_mission_hint, null, false);
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity).setView(view);
+        final AlertDialog hintDialog = builder.create();
+        hintDialog.setCancelable(false);
+        hintDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        ((TextView) view.findViewById(R.id.dialog_mission_hint_title)).setText(title);
+        ((TextView) view.findViewById(R.id.dialog_mission_hint_content)).setText(content);
+        view.findViewById(R.id.dialog_mission_hint_btn).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                hintDialog.dismiss();
+            }
+        });
+        hintDialog.show();
     }
 
     public void showCompleteMessage() {

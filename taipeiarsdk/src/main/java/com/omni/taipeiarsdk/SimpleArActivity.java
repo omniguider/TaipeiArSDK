@@ -38,6 +38,7 @@ import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RadioGroup;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -97,6 +98,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.omni.taipeiarsdk.TaipeiArSDKActivity.indexPoi_id;
 import static com.omni.taipeiarsdk.TaipeiArSDKActivity.isMission;
 import static com.omni.taipeiarsdk.TaipeiArSDKActivity.missionId;
 import static com.omni.taipeiarsdk.TaipeiArSDKActivity.ng_id;
@@ -211,11 +213,21 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
     private String selectPOIId;
     private IndexPoi[] mIndexPOI;
     private GridData[] mGridData;
+    private GridData mGrid;
     private IndexPoi indexPoi = null;
-    private boolean currentGridPass = false;
+    private boolean inTriggerRange = false;
     private SeekBar mSeekBar;
     private TextView range_tv;
     private double range = 2000;
+    private LinearLayout missionQuestionLL;
+    private FrameLayout missionQuestionBack;
+    private TextView missionQuestionTitle;
+    private TextView missionQuestionQues;
+    private RadioGroup radioGroupBoolean;
+    private RadioGroup radioGroupSelection;
+    private TextView missionQuestionConfirm;
+    private String selection = "0";
+    private AlertDialog poiInfoDialog;
 
     private List<SampleCategory> categories;
     private static final String sampleDefinitionsPath = "samples/samples.json";
@@ -241,10 +253,8 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
 
                 showUserPosition();
                 if (indexPoi != null) {
-                    if (isMission.equals("true") &&
-                            indexPoi.getAr_trigger().getActive_method().equals("0") &&
-                            !currentGridPass)
-                        detectArMission();
+                    if (isMission.equals("true") && !inTriggerRange)
+                        detectMission();
                 }
 
                 if (getDistance(mLastLocation.getLatitude(), mLastLocation.getLongitude(),
@@ -276,6 +286,10 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
                 break;
             case OmniEvent.TYPE_SHOW_AR_MODEL:
 //                showArModel(TaipeiArSDKActivity.arContent);
+                break;
+            case OmniEvent.TYPE_MISSION_COMPLETE:
+                architectView.callJavascript("World.updateGridFinished()");
+                architectView.callJavascript("World.refreshMarkerView()");
                 break;
         }
     }
@@ -710,6 +724,19 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
         mSeekBar.setOnSeekBarChangeListener(seekBarOnSeekBarChange);
         range_tv = findViewById(R.id.range_tv);
         takePhotoExp = findViewById(R.id.take_photo_ar_experience);
+        missionQuestionLL = findViewById(R.id.mission_question_ll);
+        missionQuestionBack = findViewById(R.id.mission_question_fl_back);
+        missionQuestionBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                missionQuestionLL.setVisibility(View.GONE);
+            }
+        });
+        missionQuestionTitle = findViewById(R.id.mission_question_ll_title);
+        missionQuestionQues = findViewById(R.id.mission_question_ll_question);
+        radioGroupBoolean = findViewById(R.id.boolean_radioGroup);
+        radioGroupSelection = findViewById(R.id.selection_radioGroup);
+        missionQuestionConfirm = findViewById(R.id.mission_question_ll_confirm);
 
         back_fl.setOnClickListener(mOnClickListener);
         intro.setOnClickListener(mOnClickListener);
@@ -723,6 +750,9 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
             title.setText((CharSequence) intent.getSerializableExtra(INTENT_EXTRAS_KEY_MISSION_TITLE));
             mSeekBar.setVisibility(View.GONE);
             range_tv.setVisibility(View.GONE);
+
+            ((TextView) findViewById(R.id.mission_question_fl_title))
+                    .setText((CharSequence) intent.getSerializableExtra(INTENT_EXTRAS_KEY_MISSION_TITLE));
         }
 
         mMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.activity_simple_ar_map);
@@ -795,6 +825,12 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
                 TaipeiArSDKActivity.active_method.equals("1")) {
 //            showArModel(TaipeiArSDKActivity.arContent);
         }
+
+        if (intent.hasExtra(INTENT_EXTRAS_KEY_MISSION_DATA)) {
+            showPOIInfo(indexPoi_id);
+        }
+//        architectView.callJavascript("World.createPositionable3D('" + 0.0 + "'," + 0.4 + "');");
+
     }
 
     @Override
@@ -865,7 +901,8 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
         switch_cam.setOnClickListener(mOnClickListener);
 //        move_3d_model.setAlpha(1f);
 //        rotate_3d_model.setAlpha(1f);
-        if (TestExtension.interactive_url.length() != 0)
+        if (TestExtension.interactive_url != null &&
+                TestExtension.interactive_url.length() != 0)
             interactive.setAlpha(1f);
 //        reset.setAlpha(1f);
 //        rescan.setAlpha(1f);
@@ -957,34 +994,181 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
         messageDialog.show();
     }
 
-    public void showCompleteMessage() {
-        View view = LayoutInflater.from(this).inflate(R.layout.dialog_mission_complete, null, false);
+    public void showHintMessage(String title, String content) {
+        View view = LayoutInflater.from(this).inflate(R.layout.dialog_mission_hint, null, false);
         AlertDialog.Builder builder = new AlertDialog.Builder(this).setView(view);
-        final AlertDialog completeDialog = builder.create();
-        completeDialog.setCancelable(false);
-        completeDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        view.findViewById(R.id.dialog_mission_complete_confirm).setOnClickListener(new View.OnClickListener() {
+        final AlertDialog hintDialog = builder.create();
+        hintDialog.setCancelable(false);
+        hintDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        ((TextView) view.findViewById(R.id.dialog_mission_hint_title)).setText(title);
+        ((TextView) view.findViewById(R.id.dialog_mission_hint_content)).setText(content);
+        view.findViewById(R.id.dialog_mission_hint_btn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                completeDialog.dismiss();
-//                finish();
+                hintDialog.dismiss();
             }
         });
-        completeDialog.show();
+        hintDialog.show();
+    }
+
+    public void showArrivalMessage(String title, String content) {
+        View view = LayoutInflater.from(this).inflate(R.layout.dialog_mission_arrival, null, false);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this).setView(view);
+        final AlertDialog arrivalDialog = builder.create();
+        arrivalDialog.setCancelable(false);
+        arrivalDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        ((TextView) view.findViewById(R.id.dialog_mission_arrival_title)).setText(title);
+        ((TextView) view.findViewById(R.id.dialog_mission_arrival_content)).setText(content);
+        TextView btn = view.findViewById(R.id.dialog_mission_arrival_btn);
+        switch (mGrid.getPass_method()) {
+            case "touchdown":
+                btn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        arrivalDialog.dismiss();
+                    }
+                });
+                break;
+            case "AR":
+                if (indexPoi.getAr_trigger().getActive_method().equals("1")) {
+                    btn.setText(getString(R.string.ar));
+                    btn.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            arrivalDialog.dismiss();
+                            showARModelMissionComplete();
+                        }
+                    });
+                } else if (indexPoi.getAr_trigger().getActive_method().equals("2")) {
+                    btn.setText(getString(R.string.scan));
+                    btn.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            TaipeiArSDKActivity.ar_open_by_poi = "true";
+                            mEventBus.post(new OmniEvent(OmniEvent.TYPE_OPEN_AR_RECOGNIZE, indexPoi.getAr()));
+                        }
+                    });
+                }
+                break;
+            case "QA":
+                btn.setText(getString(R.string.answering));
+                btn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        poiInfoDialog.dismiss();
+                        arrivalDialog.dismiss();
+                        missionQuestionLL.setVisibility(View.VISIBLE);
+                        missionQuestionTitle.setText(mGrid.getTitle());
+                        missionQuestionQues.setText(mGrid.getQuestion().getTitle());
+                        switch (mGrid.getQuestion().getStyle()) {
+                            case "是非":
+                                radioGroupBoolean.setVisibility(View.VISIBLE);
+                                radioGroupBoolean.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+                                    @Override
+                                    public void onCheckedChanged(RadioGroup radioGroup, int checkedId) {
+                                        if (checkedId == R.id.yes) {
+                                            selection = "Y";
+                                        } else if (checkedId == R.id.no) {
+                                            selection = "N";
+                                        }
+                                    }
+                                });
+                                break;
+                            case "單選":
+                                radioGroupSelection.setVisibility(View.VISIBLE);
+                                ((TextView) findViewById(R.id.first)).setText(mGrid.getQuestion().getOption1());
+                                ((TextView) findViewById(R.id.second)).setText(mGrid.getQuestion().getOption2());
+                                ((TextView) findViewById(R.id.third)).setText(mGrid.getQuestion().getOption3());
+                                ((TextView) findViewById(R.id.fourth)).setText(mGrid.getQuestion().getOption4());
+                                radioGroupSelection.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+                                    @Override
+                                    public void onCheckedChanged(RadioGroup radioGroup, int checkedId) {
+                                        if (checkedId == R.id.first) {
+                                            selection = "1";
+                                        } else if (checkedId == R.id.second) {
+                                            selection = "2";
+                                        } else if (checkedId == R.id.third) {
+                                            selection = "3";
+                                        } else if (checkedId == R.id.fourth) {
+                                            selection = "4";
+                                        }
+                                    }
+                                });
+                                break;
+                        }
+                        missionQuestionConfirm.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                if (mGrid.getQuestion().getStyle().equals("單選")) {
+                                    if (selection.equals(mGrid.getQuestion().getAnswer())) {
+                                        showHintMessage(getString(R.string.answer_right),
+                                                getString(R.string.congratulation));
+                                        TpeArApi.getInstance().getMissionComplete(SimpleArActivity.this,
+                                                missionId, ng_id, userId,
+                                                new NetworkManager.NetworkManagerListener<MissionCompleteFeedback>() {
+                                                    @Override
+                                                    public void onSucceed(MissionCompleteFeedback feedback) {
+                                                        missionQuestionLL.setVisibility(View.GONE);
+                                                        EventBus.getDefault().post(new OmniEvent(OmniEvent.TYPE_MISSION_COMPLETE, ""));
+                                                    }
+
+                                                    @Override
+                                                    public void onFail(VolleyError error, boolean shouldRetry) {
+
+                                                    }
+                                                });
+                                    } else {
+                                        showHintMessage(getString(R.string.answer_wrong),
+                                                mGrid.getQuestion().getTip());
+                                    }
+                                } else {
+                                    if (selection.equals(mGrid.getQuestion().getAnswer())) {
+                                        showHintMessage(getString(R.string.answer_right),
+                                                getString(R.string.congratulation));
+                                        TpeArApi.getInstance().getMissionComplete(SimpleArActivity.this,
+                                                missionId, ng_id, userId,
+                                                new NetworkManager.NetworkManagerListener<MissionCompleteFeedback>() {
+                                                    @Override
+                                                    public void onSucceed(MissionCompleteFeedback feedback) {
+                                                        missionQuestionLL.setVisibility(View.GONE);
+                                                        EventBus.getDefault().post(new OmniEvent(OmniEvent.TYPE_MISSION_COMPLETE, ""));
+                                                    }
+
+                                                    @Override
+                                                    public void onFail(VolleyError error, boolean shouldRetry) {
+
+                                                    }
+                                                });
+                                    } else {
+                                        showHintMessage(getString(R.string.answer_wrong),
+                                                mGrid.getQuestion().getTip());
+                                    }
+                                }
+                            }
+                        });
+                    }
+                });
+                break;
+        }
+        arrivalDialog.show();
     }
 
     public void showPOIInfo(String id) {
         for (IndexPoi poi : mIndexPOI) {
             if (poi.getId().equals(id)) {
                 indexPoi = poi;
+                TaipeiArSDKActivity.ng_title = indexPoi.getName();
                 break;
             }
         }
         if (isMission.equals("true")) {
-            currentGridPass = false;
+            inTriggerRange = false;
+            radioGroupBoolean.check(0);
+            radioGroupSelection.check(0);
             for (GridData data : mGridData) {
                 if (data.getPoi().getId().equals(id)) {
                     ng_id = data.getId();
+                    mGrid = data;
                     break;
                 }
             }
@@ -992,9 +1176,9 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
 
         View view = LayoutInflater.from(this).inflate(R.layout.dialog_poi_info, null, false);
         AlertDialog.Builder builder = new AlertDialog.Builder(this).setView(view);
-        final AlertDialog dialog = builder.create();
-        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        dialog.show();
+        poiInfoDialog = builder.create();
+        poiInfoDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        poiInfoDialog.show();
 
         String url = indexPoi.getImage();
         NetworkManager.getInstance().setNetworkImage(this,
@@ -1002,6 +1186,10 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
                 url);
         ((TextView) view.findViewById(R.id.dialog_poi_info_title)).setText(indexPoi.getName());
         ((TextView) view.findViewById(R.id.dialog_poi_info_desc)).setText(indexPoi.getDesc());
+        if (isMission.equals("true")) {
+            view.findViewById(R.id.dialog_poi_info_grid_hint_ll).setVisibility(View.VISIBLE);
+            ((TextView) view.findViewById(R.id.dialog_poi_info_grid_hint_tv)).setText(mGrid.getNotice());
+        }
         if (indexPoi.getHyperlink_url().length() == 0) {
             view.findViewById(R.id.dialog_poi_info_pano).setVisibility(View.GONE);
             view.findViewById(R.id.dialog_poi_info_divider).setVisibility(View.GONE);
@@ -1015,20 +1203,21 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
         }
         if (indexPoi.getHyperlink_url().length() == 0 &&
                 (indexPoi.getAr_trigger().getActive_method().length() == 0 ||
-                        indexPoi.getAr_trigger().getActive_method().equals("0"))) {
+                        indexPoi.getAr_trigger().getActive_method().equals("0")) ||
+                isMission.equals("true")) {
             view.findViewById(R.id.dialog_poi_info_btn_ll).setVisibility(View.GONE);
         }
 
-        view.findViewById(R.id.dialog_poi_info_close).setOnClickListener(v -> dialog.dismiss());
+        view.findViewById(R.id.dialog_poi_info_close).setOnClickListener(v -> poiInfoDialog.dismiss());
         view.findViewById(R.id.dialog_poi_info_pano).setOnClickListener(view1 -> {
-            dialog.dismiss();
+            poiInfoDialog.dismiss();
             Intent intent = new Intent(SimpleArActivity.this, WebViewActivity.class);
             intent.putExtra(TaipeiArSDKText.KEY_WEB_LINK, indexPoi.getHyperlink_url());
             intent.putExtra(TaipeiArSDKText.KEY_WEB_TITLE, indexPoi.getName());
             startActivity(intent);
         });
         view.findViewById(R.id.dialog_poi_info_ar).setOnClickListener(view1 -> {
-            dialog.dismiss();
+            poiInfoDialog.dismiss();
             TaipeiArSDKActivity.active_method = indexPoi.getAr_trigger().getActive_method();
             switch (indexPoi.getAr_trigger().getActive_method()) {
                 case "0":
@@ -1058,34 +1247,36 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
                             architectView.callJavascript("World.createImageAtLocation(" +
                                     lat + "," + lng + ",'" + indexPoi.getAr().getContent() + "')");
                         }
-                    } else {    //mission
-                        if (distance <= Integer.parseInt(indexPoi.getAr_trigger().getDistance())) {
-                            if (indexPoi.getAr().getContent_type().equals("3d_model")) {
-                                architectView.callJavascript("World.createModelAtLocation(" +
-                                        lat + "," + lng +
-                                        "," + 0.45 + "," + 0 + "," + degree + ",'" + indexPoi.getAr().getContent() + "')");
-                            } else if (indexPoi.getAr().getContent_type().equals("image")) {
-                                architectView.callJavascript("World.createImageAtLocation(" +
-                                        lat + "," + lng + ",'" + indexPoi.getAr().getContent() + "')");
-                            }
-                            showCompleteMessage();
-                            TpeArApi.getInstance().getMissionComplete(this,
-                                    missionId, ng_id, userId,
-                                    new NetworkManager.NetworkManagerListener<MissionCompleteFeedback>() {
-                                        @Override
-                                        public void onSucceed(MissionCompleteFeedback feedback) {
-                                            EventBus.getDefault().post(new OmniEvent(OmniEvent.TYPE_MISSION_COMPLETE, ""));
-                                        }
-
-                                        @Override
-                                        public void onFail(VolleyError error, boolean shouldRetry) {
-
-                                        }
-                                    });
-                        } else {
-                            showHintMessage();
-                        }
                     }
+//                    else if (mGrid.getPass_method().equals("AR")) {    //AR mission
+//                        if (distance <= Integer.parseInt(indexPoi.getAr_trigger().getDistance())) {
+//                            if (indexPoi.getAr().getContent_type().equals("3d_model")) {
+//                                architectView.callJavascript("World.createModelAtLocation(" +
+//                                        lat + "," + lng +
+//                                        "," + 0.45 + "," + 0 + "," + degree + ",'" + indexPoi.getAr().getContent() + "')");
+//                            } else if (indexPoi.getAr().getContent_type().equals("image")) {
+//                                architectView.callJavascript("World.createImageAtLocation(" +
+//                                        lat + "," + lng + ",'" + indexPoi.getAr().getContent() + "')");
+//                            }
+//                            showHintMessage(String.format(getString(R.string.arrival), indexPoi.getName()),
+//                                    getString(R.string.congratulation));
+//                            TpeArApi.getInstance().getMissionComplete(this,
+//                                    missionId, ng_id, userId,
+//                                    new NetworkManager.NetworkManagerListener<MissionCompleteFeedback>() {
+//                                        @Override
+//                                        public void onSucceed(MissionCompleteFeedback feedback) {
+//                                            EventBus.getDefault().post(new OmniEvent(OmniEvent.TYPE_MISSION_COMPLETE, ""));
+//                                        }
+//
+//                                        @Override
+//                                        public void onFail(VolleyError error, boolean shouldRetry) {
+//
+//                                        }
+//                                    });
+//                        } else {
+//                            showHintMessage();
+//                        }
+//                    }
                     break;
                 case "2":
                     TaipeiArSDKActivity.ar_open_by_poi = "true";
@@ -1108,31 +1299,126 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
         double degree = findDegree((float) deltaX, (float) deltaY);
 
         Log.e(TAG, "detectArMission distance" + distance);
-        if (distance <= Integer.parseInt(indexPoi.getAr_trigger().getDistance())) {
-            if (indexPoi.getAr().getContent_type().equals("3d_model")) {
-                architectView.callJavascript("World.createModelAtLocation(" +
-                        lat + "," + lng +
-                        "," + 0.45 + "," + 0 + "," + degree + ",'" + indexPoi.getAr().getContent() + "')");
-            } else if (indexPoi.getAr().getContent_type().equals("image")) {
-                architectView.callJavascript("World.createImageAtLocation(" +
-                        lat + "," + lng + ",'" + indexPoi.getAr().getContent() + "')");
+
+        if (mGrid.getPass_method().equals("AR") &&
+                indexPoi.getAr_trigger().getActive_method().equals("0")) {
+            if (distance <= Integer.parseInt(indexPoi.getAr_trigger().getDistance())) {
+                if (indexPoi.getAr().getContent_type().equals("3d_model")) {
+                    architectView.callJavascript("World.createModelAtLocation(" +
+                            lat + "," + lng +
+                            "," + 0.45 + "," + 0 + "," + degree + ",'" + indexPoi.getAr().getContent() + "')");
+                } else if (indexPoi.getAr().getContent_type().equals("image")) {
+                    architectView.callJavascript("World.createImageAtLocation(" +
+                            lat + "," + lng + ",'" + indexPoi.getAr().getContent() + "')");
+                }
+                showHintMessage(String.format(getString(R.string.arrival), indexPoi.getName()),
+                        getString(R.string.congratulation));
+                TpeArApi.getInstance().getMissionComplete(this,
+                        missionId, ng_id, userId,
+                        new NetworkManager.NetworkManagerListener<MissionCompleteFeedback>() {
+                            @Override
+                            public void onSucceed(MissionCompleteFeedback feedback) {
+                                EventBus.getDefault().post(new OmniEvent(OmniEvent.TYPE_MISSION_COMPLETE, ""));
+                            }
+
+                            @Override
+                            public void onFail(VolleyError error, boolean shouldRetry) {
+
+                            }
+                        });
             }
-            showCompleteMessage();
-            TpeArApi.getInstance().getMissionComplete(this,
-                    missionId, ng_id, userId,
-                    new NetworkManager.NetworkManagerListener<MissionCompleteFeedback>() {
-                        @Override
-                        public void onSucceed(MissionCompleteFeedback feedback) {
-                            currentGridPass = true;
-                            EventBus.getDefault().post(new OmniEvent(OmniEvent.TYPE_MISSION_COMPLETE, ""));
-                        }
-
-                        @Override
-                        public void onFail(VolleyError error, boolean shouldRetry) {
-
-                        }
-                    });
         }
+    }
+
+    private void detectMission() {
+        double distance = getDistance(
+                mLastLocation.getLatitude(),
+                mLastLocation.getLongitude(),
+                Double.parseDouble(indexPoi.getLat()),
+                Double.parseDouble(indexPoi.getLng()));
+        double deltaX = (Double.parseDouble(indexPoi.getLat()) - mLastLocation.getLatitude());
+        double deltaY = (Double.parseDouble(indexPoi.getLng()) - mLastLocation.getLongitude());
+
+        Log.e(TAG, "detectMission distance" + distance);
+        if (distance <= Integer.parseInt(mGrid.getTrigger_distance())) {
+            inTriggerRange = true;
+            switch (mGrid.getPass_method()) {
+                case "touchdown":
+                    showHintMessage(String.format(getString(R.string.arrival), indexPoi.getName()),
+                            getString(R.string.congratulation));
+                    TpeArApi.getInstance().getMissionComplete(this,
+                            missionId, ng_id, userId,
+                            new NetworkManager.NetworkManagerListener<MissionCompleteFeedback>() {
+                                @Override
+                                public void onSucceed(MissionCompleteFeedback feedback) {
+                                    EventBus.getDefault().post(new OmniEvent(OmniEvent.TYPE_MISSION_COMPLETE, ""));
+                                }
+
+                                @Override
+                                public void onFail(VolleyError error, boolean shouldRetry) {
+
+                                }
+                            });
+                    break;
+                case "AR":
+                    switch (indexPoi.getAr_trigger().getActive_method()) {
+                        case "0":
+                            showARModelMissionComplete();
+                            break;
+                        case "1":
+                            showArrivalMessage(String.format(getString(R.string.arrival), indexPoi.getName()),
+                                    getString(R.string.ar_trigger_hint));
+                            break;
+                        case "2":
+                            showArrivalMessage(String.format(getString(R.string.arrival), indexPoi.getName()),
+                                    getString(R.string.ar_trigger_pattern_hint));
+                            break;
+                    }
+                    break;
+                case "QA":
+                    showArrivalMessage(String.format(getString(R.string.arrival), indexPoi.getName()),
+                            getString(R.string.answer_question));
+                    break;
+            }
+        } else {
+            inTriggerRange = false;
+        }
+    }
+
+    private void showARModelMissionComplete() {
+        double distance = getDistance(
+                mLastLocation.getLatitude(),
+                mLastLocation.getLongitude(),
+                Double.parseDouble(indexPoi.getLat()),
+                Double.parseDouble(indexPoi.getLng()));
+        double deltaX = (Double.parseDouble(indexPoi.getLat()) - mLastLocation.getLatitude());
+        double deltaY = (Double.parseDouble(indexPoi.getLng()) - mLastLocation.getLongitude());
+        double lat = mLastLocation.getLatitude() + deltaX / distance * 20;
+        double lng = mLastLocation.getLongitude() + deltaY / distance * 20;
+        double degree = findDegree((float) deltaX, (float) deltaY);
+        if (indexPoi.getAr().getContent_type().equals("3d_model")) {
+            architectView.callJavascript("World.createModelAtLocation(" +
+                    lat + "," + lng +
+                    "," + 0.45 + "," + 0 + "," + degree + ",'" + indexPoi.getAr().getContent() + "')");
+        } else if (indexPoi.getAr().getContent_type().equals("image")) {
+            architectView.callJavascript("World.createImageAtLocation(" +
+                    lat + "," + lng + ",'" + indexPoi.getAr().getContent() + "')");
+        }
+        showHintMessage(String.format(getString(R.string.break_through), mGrid.getTitle()),
+                getString(R.string.congratulation));
+        TpeArApi.getInstance().getMissionComplete(this,
+                missionId, ng_id, userId,
+                new NetworkManager.NetworkManagerListener<MissionCompleteFeedback>() {
+                    @Override
+                    public void onSucceed(MissionCompleteFeedback feedback) {
+                        EventBus.getDefault().post(new OmniEvent(OmniEvent.TYPE_MISSION_COMPLETE, ""));
+                    }
+
+                    @Override
+                    public void onFail(VolleyError error, boolean shouldRetry) {
+
+                    }
+                });
     }
 
     private View.OnClickListener mOnClickListener = new View.OnClickListener() {

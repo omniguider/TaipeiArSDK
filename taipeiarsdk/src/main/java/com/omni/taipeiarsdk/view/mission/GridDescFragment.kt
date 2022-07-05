@@ -71,6 +71,7 @@ class GridDescFragment : Fragment() {
         startMissionBtn!!.setOnClickListener {
             TaipeiArSDKActivity.missionTitle = currentNineGridData.mission_title
             TaipeiArSDKActivity.ng_id = gridData!!.id
+            TaipeiArSDKActivity.indexPoi_id = gridData!!.poi.id
             var indexPoi: ArrayList<IndexPoi> = ArrayList()
             for (item in currentNineGridData.nine_grid) {
                 indexPoi.add(item.poi)

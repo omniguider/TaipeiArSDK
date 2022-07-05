@@ -9,9 +9,11 @@ public class GridData implements Serializable {
     private String id;
     private String title;
     private String description;
-    private String trigger;
     private String notice;
+    private String trigger_distance;
+    private String pass_method;
     private IndexPoi poi;
+    private Question question;
     private boolean is_complete;
 
     public String getId() {
@@ -26,8 +28,8 @@ public class GridData implements Serializable {
         return description;
     }
 
-    public String getTrigger() {
-        return trigger;
+    public String getTrigger_distance() {
+        return trigger_distance;
     }
 
     public String getNotice() {
@@ -42,4 +44,11 @@ public class GridData implements Serializable {
         return is_complete;
     }
 
+    public String getPass_method() {
+        return pass_method;
+    }
+
+    public Question getQuestion() {
+        return question;
+    }
 }

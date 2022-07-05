@@ -240,6 +240,14 @@ var World = {
 		}
 	},
 
+    updateGridFinished: function updateGridFinishedFn() {
+        for (var index = 0; index < World.POIData.length ; index++){
+            if (World.POIData[index].selected == "true"){
+                World.POIData[index].gridFinished = "true";
+            }
+        }
+	},
+
 	// updates status message shown in small "i"-button aligned bottom center
 	updateStatusMessage: function updateStatusMessageFn(message, isWarning) {
 

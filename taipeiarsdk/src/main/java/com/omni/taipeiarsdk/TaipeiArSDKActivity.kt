@@ -62,6 +62,8 @@ class TaipeiArSDKActivity : AppCompatActivity(), LocationListener,
         lateinit var isMission: String
         lateinit var missionId: String
         lateinit var ng_id: String
+        lateinit var indexPoi_id: String
+        lateinit var ng_title: String
     }
 
     private val ARG_KEY_USERID = "arg_key_userid"
@@ -160,6 +162,7 @@ class TaipeiArSDKActivity : AppCompatActivity(), LocationListener,
         }
 
         findViewById<CardView>(R.id.ar_guide).setOnClickListener {
+            isMission = "false"
             mIndexPOI = emptyArray()
             sampleData = categories!![9].samples[1] //ar_guide
             val intent = Intent(this@TaipeiArSDKActivity, sampleData!!.activityClass)

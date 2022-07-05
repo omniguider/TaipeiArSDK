@@ -22,6 +22,9 @@ import org.json.JSONObject;
 
 import java.util.HashMap;
 
+import static com.omni.taipeiarsdk.TaipeiArSDKActivity.indexPoi_id;
+import static com.omni.taipeiarsdk.TaipeiArSDKActivity.isMission;
+
 public class PoiDataFromApplicationModelExtension extends ArchitectViewExtension implements LocationListener {
 
     private static Topic[] topics;
@@ -87,7 +90,7 @@ public class PoiDataFromApplicationModelExtension extends ArchitectViewExtension
         if (TaipeiArSDKActivity.mIndexPOI.length == 0) {
             indexPois = indexFeedback.getPoi();
             refresh = false;
-        }else {
+        } else {
             indexPois = TaipeiArSDKActivity.mIndexPOI;
             refresh = true;
         }
@@ -127,7 +130,12 @@ public class PoiDataFromApplicationModelExtension extends ArchitectViewExtension
             // Use "AR.CONST.UNKNOWN_ALTITUDE" to tell ARchitect that altitude of places should be on user level. Be aware to handle altitude properly in locationManager in case you use valid POI altitude value (e.g. pass altitude only if GPS accuracy is <7m).
 
             poiInformation.put(ATTR_ALTITUDE, String.valueOf(UNKNOWN_ALTITUDE));
-            poiInformation.put(ATTR_SELECTED, "false");
+            if (isMission.equals("true")) {
+                if (indexPoi_id.equals(indexPoi.getId())) {
+                    poiInformation.put(ATTR_SELECTED, "true");
+                }
+            } else
+                poiInformation.put(ATTR_SELECTED, "false");
 
             pois.put(new JSONObject(poiInformation));
         }
@@ -144,7 +152,7 @@ public class PoiDataFromApplicationModelExtension extends ArchitectViewExtension
                             final JSONArray jsonArray = generateTopicPoiInformation(feedback);
                             architectView.callJavascript("World.loadPoisFromJsonData(" +
                                     jsonArray.toString() +
-                                     "," + refresh + ")"); // Triggers the loadPoisFromJsonData function
+                                    "," + refresh + ")"); // Triggers the loadPoisFromJsonData function
                             injectedPois = true; // avoiding loading pois again
                         }
 

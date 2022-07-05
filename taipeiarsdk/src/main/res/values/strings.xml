@@ -81,4 +81,16 @@
     <string name="receive_reward_hint">請交由工作人員點擊「 確定 」才能領取獎勵，或放置獎勵區</string>
     <string name="reward_postpone">放置獎勵區</string>
     <string name="range">範圍：%s km</string>
+    <string name="congratulation">恭喜您過關！</string>
+    <string name="answering">開始答題</string>
+    <string name="answer_question">請答題過關！</string>
+    <string name="arrival">抵達 %s</string>
+    <string name="break_through">闖關 %s</string>
+    <string name="answer_right">答案正確</string>
+    <string name="answer_wrong">答案錯誤</string>
+    <string name="answer_confirm">確定答案</string>
+    <string name="answer_wrong_hint">OOPS！\n答案就在導覽資訊裡喔！</string>
+    <string name="ar_trigger_hint">顯示AR後才可過關！</string>
+    <string name="ar_trigger_pattern_hint">掃描辨識圖顯示AR後才可過關！</string>
+    <string name="scan">掃描</string>
 </resources>
