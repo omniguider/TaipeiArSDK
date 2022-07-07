@@ -3,18 +3,23 @@ package com.omni.taipeiarsdk.view.mission
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
-import android.graphics.Color
-import android.graphics.Rect
+import android.graphics.*
 import android.graphics.drawable.ColorDrawable
+import android.hardware.*
+import android.location.Location
 import android.os.Bundle
+import android.os.Handler
 import android.provider.Settings
 import android.util.Log
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.DefaultItemAnimator
@@ -22,6 +27,11 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ItemDecoration
 import com.android.volley.VolleyError
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.*
 import com.omni.taipeiarsdk.R
 import com.omni.taipeiarsdk.TaipeiArSDKActivity.Companion.currentNineGridData
 import com.omni.taipeiarsdk.TaipeiArSDKActivity.Companion.userId
@@ -33,12 +43,13 @@ import com.omni.taipeiarsdk.model.mission.MissionGridFeedback
 import com.omni.taipeiarsdk.model.mission.MissionRewardFeedback
 import com.omni.taipeiarsdk.network.NetworkManager
 import com.omni.taipeiarsdk.network.TpeArApi
+import com.omni.taipeiarsdk.tool.TaipeiArSDKText
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 import kotlin.math.roundToInt
 
-class NineGridFragment : Fragment() {
+class NineGridFragment : Fragment(), OnMapReadyCallback {
     private var mEventBus: EventBus? = null
     private var mContext: Context? = null
     private var missionId: String? = null
@@ -53,6 +64,23 @@ class NineGridFragment : Fragment() {
     private var mAdapter: NineGridAdapter? = null
     private var recyclerView: RecyclerView? = null
 
+    private var mMapFragment: SupportMapFragment? = null
+    private var mMap: GoogleMap? = null
+    private var mIsMapInit = false
+    private var mLastLocation: Location? = null
+    private var mUserMarker: Marker? = null
+    private var azimuth = 0f
+    private val mRotationMatrix = FloatArray(16)
+    private var mDeclination = 0f
+    private var mUserAccuracyCircle: Circle? = null
+    private var viewMode = "grid"
+    private var viewModeIV: ImageView? = null
+    private var viewModeTV: TextView? = null
+    private var viewModeLL: LinearLayout? = null
+    private var mapFL: FrameLayout? = null
+    private var mSensorManager: SensorManager? = null
+    private val mHeadingHandler: Handler? = null
+
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onEvent(event: OmniEvent) {
         when (event.type) {
@@ -60,6 +88,18 @@ class NineGridFragment : Fragment() {
                 EventBus.getDefault()
                     .post(OmniEvent(OmniEvent.TYPE_REWARD_COMPLETE, ""))
                 makePageDataReq()
+            }
+            OmniEvent.TYPE_USER_AR_LOCATION -> {
+                mLastLocation = event.obj as Location
+
+                val field = GeomagneticField(
+                    mLastLocation!!.latitude.toFloat(),
+                    mLastLocation!!.longitude.toFloat(),
+                    mLastLocation!!.altitude.toFloat(),
+                    System.currentTimeMillis()
+                )
+                mDeclination = field.declination
+                showUserPosition()
             }
         }
     }
@@ -106,7 +146,24 @@ class NineGridFragment : Fragment() {
         describe = requireArguments().getString(ARG_KEY_DESC)
         verify_code = requireArguments().getString(ARG_KEY_CODE)
 
+        mSensorManager = requireActivity().getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        val sensor: Sensor = mSensorManager!!.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
+        mSensorManager!!.registerListener(
+            mSensorEventListener,
+            sensor,
+            TaipeiArSDKText.ROTATION_SENSOR_RATE,
+            mHeadingHandler
+        )
+
         makePageDataReq()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (!mIsMapInit) {
+            mIsMapInit = true
+            mMapFragment!!.getMapAsync(this)
+        }
     }
 
     override fun onDestroy() {
@@ -152,6 +209,29 @@ class NineGridFragment : Fragment() {
         recyclerView!!.itemAnimator = DefaultItemAnimator()
         recyclerView!!.adapter = mAdapter
 
+        mMapFragment =
+            childFragmentManager.findFragmentById(R.id.fragment_nine_grid_map) as SupportMapFragment?
+
+        mapFL = mView.findViewById(R.id.fragment_nine_grid_map_fl)
+        viewModeIV = mView.findViewById(R.id.view_mode_iv)
+        viewModeTV = mView.findViewById(R.id.view_mode_tv)
+        viewModeLL = mView.findViewById(R.id.view_mode)
+        viewModeLL!!.setOnClickListener {
+            if (viewMode == "grid") {
+                recyclerView!!.visibility = View.GONE
+                mapFL!!.visibility = View.VISIBLE
+                viewMode = "map"
+                viewModeIV!!.setImageResource(R.mipmap.icon_view_grid)
+                viewModeTV!!.setText(R.string.view_grid)
+            } else {
+                recyclerView!!.visibility = View.VISIBLE
+                mapFL!!.visibility = View.GONE
+                viewMode = "grid"
+                viewModeIV!!.setImageResource(R.mipmap.icon_view_location)
+                viewModeTV!!.setText(R.string.view_location)
+            }
+        }
+
         return mView
     }
 
@@ -177,7 +257,7 @@ class NineGridFragment : Fragment() {
                         mContext!!.contentResolver,
                         Settings.Secure.ANDROID_ID
                     ),
-                object : NetworkManager.NetworkManagerListener<MissionRewardFeedback?> {
+                    object : NetworkManager.NetworkManagerListener<MissionRewardFeedback?> {
                         override fun onSucceed(feedback: MissionRewardFeedback?) {
                             getRewardAlreadyBtn!!.visibility = View.VISIBLE
                             getRewardBtn!!.visibility = View.GONE
@@ -320,5 +400,134 @@ class NineGridFragment : Fragment() {
             dp.toFloat(),
             r.displayMetrics
         ).roundToInt()
+    }
+
+    override fun onMapReady(googleMap: GoogleMap?) {
+        mMap = googleMap
+        mMap!!.mapType = GoogleMap.MAP_TYPE_TERRAIN
+        mMap!!.uiSettings.isZoomControlsEnabled = false
+        mMap!!.uiSettings.isMapToolbarEnabled = false
+        mMap!!.uiSettings.isCompassEnabled = true
+        mMap!!.uiSettings.isZoomGesturesEnabled = true
+
+        TpeArApi.getInstance().getMissionGrid(
+            requireActivity(),
+            missionId,
+            userId,
+            object : NetworkManager.NetworkManagerListener<MissionGridFeedback?> {
+                override fun onSucceed(feedback: MissionGridFeedback?) {
+                    if (feedback!!.data.nine_grid.isNotEmpty()) {
+                        addPOIMarkers(feedback.data.nine_grid)
+                        mMap!!.moveCamera(
+                            CameraUpdateFactory.newLatLngZoom(
+                                LatLng(
+                                    feedback.data!!.nine_grid[0].poi.lat.toDouble(),
+                                    feedback.data!!.nine_grid[0].poi.lng.toDouble()
+                                ),
+                                TaipeiArSDKText.MAP_MIN_ZOOM_LEVEL.toFloat()
+                            )
+                        )
+                    }
+                }
+
+                override fun onFail(error: VolleyError?, shouldRetry: Boolean) {}
+            })
+    }
+
+    private fun addPOIMarkers(gridData: Array<GridData>) {
+        for (i in gridData.indices) {
+            val icon =
+                BitmapFactory.decodeResource(requireActivity().resources, R.mipmap.bg_poi)
+                    .copy(Bitmap.Config.ARGB_8888, true)
+            val canvas = Canvas(icon)
+            val paint = Paint()
+            paint.style = Paint.Style.FILL
+            paint.color = requireActivity().resources.getColor(android.R.color.white) // Text Color
+            paint.textSize =
+                requireActivity().resources.getDimension(R.dimen.text_size_normal) //Text Size
+            val x = (canvas.width / 2 - paint.measureText((i + 1).toString()) / 2).toInt()
+            val y = (canvas.height / 2 - (paint.descent() + paint.ascent()) / 2).toInt()
+            canvas.drawText((i + 1).toString(), x.toFloat(), (y - 6).toFloat(), paint)
+
+            mMap!!.addMarker(
+                MarkerOptions()
+                    .flat(false)
+                    .title(gridData[i].title)
+                    .icon(BitmapDescriptorFactory.fromBitmap(icon))
+                    .position(
+                        LatLng(
+                            gridData[i].poi.lat.toDouble(),
+                            gridData[i].poi.lng.toDouble()
+                        )
+                    )
+                    .zIndex(TaipeiArSDKText.MARKER_Z_INDEX.toFloat())
+            )
+        }
+    }
+
+    private fun showUserPosition() {
+        if (!mIsMapInit) {
+            mIsMapInit = true
+            mMapFragment!!.getMapAsync(this)
+        }
+        val current = LatLng(mLastLocation!!.latitude, mLastLocation!!.longitude)
+        addUserMarker(current, mLastLocation!!)
+    }
+
+    private fun addUserMarker(position: LatLng, location: Location) {
+        if (mMap == null) {
+            return
+        }
+
+        if (mUserMarker == null) {
+            mUserMarker = mMap!!.addMarker(
+                MarkerOptions()
+                    .flat(true)
+                    .rotation(location.bearing)
+                    .icon(BitmapDescriptorFactory.fromResource(R.mipmap.location))
+                    .anchor(0.5f, 0.5f)
+                    .position(position)
+                    .zIndex(TaipeiArSDKText.MARKER_Z_INDEX.toFloat())
+            )
+            mUserAccuracyCircle = mMap!!.addCircle(
+                CircleOptions()
+                    .center(position)
+                    .radius((location.accuracy / 2).toDouble())
+                    .strokeColor(ContextCompat.getColor(requireActivity(), R.color.blue_41))
+                    .strokeWidth(5f)
+                    .zIndex(TaipeiArSDKText.MARKER_Z_INDEX.toFloat())
+            )
+        } else {
+            mUserMarker!!.position = position
+            mUserMarker!!.rotation = azimuth
+            mUserAccuracyCircle!!.center = position
+            mUserAccuracyCircle!!.radius = (location.accuracy / 2).toDouble()
+        }
+
+        mUserAccuracyCircle!!.isVisible = false
+    }
+
+    private val mSensorEventListener: SensorEventListener = object : SensorEventListener {
+        override fun onSensorChanged(event: SensorEvent) {
+            if (event.sensor.type == Sensor.TYPE_ROTATION_VECTOR) {
+                SensorManager.getRotationMatrixFromVector(
+                    mRotationMatrix, event.values
+                )
+                val orientation = FloatArray(4)
+                val orientationAngles = FloatArray(3)
+                SensorManager.getOrientation(mRotationMatrix, orientationAngles)
+                azimuth = (((Math.toDegrees(
+                    SensorManager.getOrientation(mRotationMatrix, orientation)[0]
+                        .toDouble()
+                ) + 360) % 360 -
+                        Math.toDegrees(
+                            SensorManager.getOrientation(mRotationMatrix, orientation)[2]
+                                .toDouble()
+                        ) + 360) % 360).toInt() + mDeclination
+                azimuth = (azimuth + 360) % 360
+            }
+        }
+
+        override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {}
     }
 }

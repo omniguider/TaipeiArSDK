@@ -93,4 +93,9 @@
     <string name="ar_trigger_hint">顯示AR後才可過關！</string>
     <string name="ar_trigger_pattern_hint">掃描辨識圖顯示AR後才可過關！</string>
     <string name="scan">掃描</string>
+    <string name="view_location"><u>地圖位置</u></string>
+    <string name="view_grid"><u>任務關卡</u></string>
+    <string name="view_list"><u>地點列表</u></string>
+    <string name="detail_info"><u>詳細資訊</u></string>
+    <string name="navigation">導覽</string>
 </resources>

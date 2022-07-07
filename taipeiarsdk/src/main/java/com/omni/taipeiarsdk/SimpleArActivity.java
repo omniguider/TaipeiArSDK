@@ -9,7 +9,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.drawable.ColorDrawable;
 import android.hardware.GeomagneticField;
 import android.hardware.Sensor;
@@ -387,13 +390,23 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
     }
 
     private void addPOIMarkers(IndexPoi[] poiData) {
-        for (IndexPoi indexPoi : poiData) {
+        for (int i = 0; i < poiData.length; i++) {
+            Bitmap icon = BitmapFactory.decodeResource(getResources(), R.mipmap.bg_poi).copy(Bitmap.Config.ARGB_8888, true);
+            Canvas canvas = new Canvas(icon);
+            Paint paint = new Paint();
+            paint.setStyle(Paint.Style.FILL);
+            paint.setColor(getResources().getColor(android.R.color.white)); // Text Color
+            paint.setTextSize(getResources().getDimension(R.dimen.text_size_normal)); //Text Size
+            int x = (int) (canvas.getWidth() / 2 - paint.measureText(String.valueOf(i + 1)) / 2);
+            int y = (int) ((canvas.getHeight() / 2) - ((paint.descent() + paint.ascent()) / 2));
+            canvas.drawText(String.valueOf(i + 1), x, y - 6, paint);
+
             mMap.addMarker(new MarkerOptions()
                     .flat(false)
-                    .title(indexPoi.getName())
-                    .icon(BitmapDescriptorFactory.fromResource(R.mipmap.poi_marker))
-                    .position(new LatLng(Double.parseDouble(indexPoi.getLat()),
-                            Double.parseDouble(indexPoi.getLng())))
+                    .title(poiData[i].getName())
+                    .icon(BitmapDescriptorFactory.fromBitmap(icon))
+                    .position(new LatLng(Double.parseDouble(poiData[i].getLat()),
+                            Double.parseDouble(poiData[i].getLng())))
                     .zIndex(TaipeiArSDKText.MARKER_Z_INDEX));
         }
     }
