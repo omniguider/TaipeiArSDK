@@ -20,6 +20,8 @@ public class IndexPoi implements Serializable {
     private Ar ar;
     private String gridFinished;
 
+    private float distance;
+
     public String getId() {
         return id;
     }
@@ -70,6 +72,15 @@ public class IndexPoi implements Serializable {
 
     public void setGridFinished(String gridFinished) {
         this.gridFinished = gridFinished;
+    }
+
+
+    public float getDistance() {
+        return distance;
+    }
+
+    public void setDistance(float distance) {
+        this.distance = distance;
     }
 }
 

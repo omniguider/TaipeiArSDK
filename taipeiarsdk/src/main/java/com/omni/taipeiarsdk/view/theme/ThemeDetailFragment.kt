@@ -20,22 +20,17 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.android.volley.VolleyError
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.omni.taipeiarsdk.R
-import com.omni.taipeiarsdk.TaipeiArSDKActivity
 import com.omni.taipeiarsdk.adapter.ThemeDetailAdapter
 import com.omni.taipeiarsdk.model.OmniEvent
-import com.omni.taipeiarsdk.model.mission.GridData
-import com.omni.taipeiarsdk.model.mission.MissionGridFeedback
 import com.omni.taipeiarsdk.model.tpe_location.IndexPoi
 import com.omni.taipeiarsdk.model.tpe_location.ThemeData
 import com.omni.taipeiarsdk.network.NetworkManager
-import com.omni.taipeiarsdk.network.TpeArApi
 import com.omni.taipeiarsdk.tool.TaipeiArSDKText
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -69,6 +64,20 @@ class ThemeDetailFragment : Fragment(), OnMapReadyCallback {
         when (event.type) {
             OmniEvent.TYPE_USER_AR_LOCATION -> {
                 mLastLocation = event.obj as Location
+
+                if (mAdapter == null) {
+                    for (poi in mThemeData.poi) {
+                        poi.distance = getDistance(
+                            mLastLocation!!.latitude, mLastLocation!!.longitude,
+                            poi.lat.toDouble(), poi.lng.toDouble()
+                        )
+                    }
+                    mAdapter = ThemeDetailAdapter(
+                        mContext,
+                        mThemeData.poi.toMutableList()
+                    )
+                    themeDetailRV!!.adapter = mAdapter
+                }
 
                 val field = GeomagneticField(
                     mLastLocation!!.latitude.toFloat(),
@@ -123,13 +132,6 @@ class ThemeDetailFragment : Fragment(), OnMapReadyCallback {
 
         themeDetailRV = view.findViewById(R.id.theme_detail_recycler_view)
         themeDetailRV!!.layoutManager = LinearLayoutManager(mContext)
-        if (mAdapter == null) {
-            mAdapter = ThemeDetailAdapter(
-                mContext,
-                mThemeData.poi.toMutableList()
-            )
-        }
-        themeDetailRV!!.adapter = mAdapter
 
         view.findViewById<TextView>(R.id.theme_detail_navi).setOnClickListener {
             EventBus.getDefault().post(OmniEvent(OmniEvent.TYPE_OPEN_AR_GUIDE, mThemeData.poi));
@@ -296,5 +298,15 @@ class ThemeDetailFragment : Fragment(), OnMapReadyCallback {
         }
 
         override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {}
+    }
+
+    fun getDistance(p1Lat: Double, p1Lon: Double, p2Lat: Double, p2Lon: Double): Float {
+        val l1 = Location("One")
+        l1.latitude = p1Lat
+        l1.longitude = p1Lon
+        val l2 = Location("Two")
+        l2.latitude = p2Lat
+        l2.longitude = p2Lon
+        return l1.distanceTo(l2)
     }
 }
