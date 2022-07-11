@@ -37,6 +37,7 @@ public class TaipeiArSDKText {
     public static final int REQUEST_COARSE_LOCATION = 9;
     public static final int REQUEST_FINE_LOCATION = 10;
     public static final int REQUEST_CAMERA = 11;
+    public static final int REQUEST_PERMISSIONS = 12;
 
     public static int MAP_CURRENT_POS_ZOOM = 19;
     public static final int MAP_ZOOM_LEVEL = 18;

@@ -2,10 +2,12 @@ package com.omni.taipeiarsdk
 
 import android.Manifest
 import android.app.AlertDialog
+import android.bluetooth.BluetoothAdapter
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
@@ -13,6 +15,7 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.core.app.ActivityCompat
@@ -23,12 +26,14 @@ import com.google.android.gms.location.LocationListener
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.places.Places
+import com.indooratlas.android.sdk.*
 import com.omni.taipeiarsdk.manager.AnimationFragmentManager
 import com.omni.taipeiarsdk.model.OmniEvent
 import com.omni.taipeiarsdk.model.mission.MissionGridData
 import com.omni.taipeiarsdk.model.tpe_location.Ar
 import com.omni.taipeiarsdk.model.tpe_location.IndexPoi
 import com.omni.taipeiarsdk.tool.TaipeiArSDKText
+import com.omni.taipeiarsdk.tool.TaipeiArSDKText.LOG_TAG
 import com.omni.taipeiarsdk.util.*
 import com.omni.taipeiarsdk.view.mission.MissionFragment
 import com.omni.taipeiarsdk.view.theme.ThemeGuideFragment
@@ -40,7 +45,8 @@ import org.greenrobot.eventbus.ThreadMode
 import java.util.*
 import kotlin.collections.ArrayList
 
-class TaipeiArSDKActivity : AppCompatActivity(), LocationListener,
+class TaipeiArSDKActivity : AppCompatActivity(), IARegion.Listener, IALocationListener,
+    LocationListener,
     GoogleApiClient.ConnectionCallbacks,
     GoogleApiClient.OnConnectionFailedListener {
 
@@ -75,6 +81,9 @@ class TaipeiArSDKActivity : AppCompatActivity(), LocationListener,
     private var mLastLocation: Location? = null
     private var mGoogleApiClient: GoogleApiClient? = null
     private var mLocationRequest: LocationRequest? = null
+
+    private var mIsIndoor = false
+    private var mIALocationManager: IALocationManager? = null
 
     private var mEventBus: EventBus? = null
 
@@ -257,6 +266,11 @@ class TaipeiArSDKActivity : AppCompatActivity(), LocationListener,
         if (mEventBus != null) {
             mEventBus!!.unregister(this)
         }
+
+        if (mIALocationManager != null) {
+            mIALocationManager!!.destroy()
+            mIALocationManager = null
+        }
     }
 
     private fun checkLocationService() {
@@ -285,13 +299,34 @@ class TaipeiArSDKActivity : AppCompatActivity(), LocationListener,
         Log.e("LOG", "ensurePermissions")
         if (ActivityCompat.checkSelfPermission(
                 this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
+                this,
                 Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_WIFI_STATE
+            ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.CHANGE_WIFI_STATE
+            ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.BLUETOOTH
+            ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.BLUETOOTH_ADMIN
             ) != PackageManager.PERMISSION_GRANTED
         ) {
             ActivityCompat.requestPermissions(
-                this,
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                TaipeiArSDKText.REQUEST_COARSE_LOCATION
+                this, arrayOf(
+                    Manifest.permission.CHANGE_WIFI_STATE,
+                    Manifest.permission.ACCESS_WIFI_STATE,
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                    Manifest.permission.BLUETOOTH,
+                    Manifest.permission.BLUETOOTH_ADMIN
+                ),
+                TaipeiArSDKText.REQUEST_PERMISSIONS
             )
         } else {
             if (mGoogleApiClient == null) {
@@ -305,12 +340,66 @@ class TaipeiArSDKActivity : AppCompatActivity(), LocationListener,
             }
             getLocationFromGoogle()
         }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.BLUETOOTH_SCAN
+                ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.BLUETOOTH_CONNECT
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(
+                    this, arrayOf(
+                        Manifest.permission.BLUETOOTH_SCAN,
+                        Manifest.permission.BLUETOOTH_CONNECT
+                    ),
+                    TaipeiArSDKText.REQUEST_PERMISSIONS
+                )
+            }
+        }
     }
 
     private fun getLocationFromGoogle() {
-        if (mGoogleApiClient != null && !mGoogleApiClient!!.isConnected()) {
+        if (mGoogleApiClient != null && !mGoogleApiClient!!.isConnected) {
             mGoogleApiClient!!.connect()
         }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.BLUETOOTH_SCAN
+                ) == PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.BLUETOOTH_CONNECT
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                initIALocationManager()
+            }
+        } else {
+            initIALocationManager()
+        }
+    }
+
+    private fun initIALocationManager() {
+        if (mGoogleApiClient != null && !mGoogleApiClient!!.isConnected) {
+            mGoogleApiClient!!.connect()
+        }
+
+        if (mIALocationManager == null) {
+            mIALocationManager = IALocationManager.create(this)
+            mIALocationManager?.lockIndoors(true)
+        } else {
+            mIALocationManager!!.unregisterRegionListener(this)
+        }
+        mIALocationManager!!.registerRegionListener(this)
+
+        val request = IALocationRequest.create()
+        request.fastestInterval = 1000
+        request.smallestDisplacement = 0.6f
+        mIALocationManager!!.removeLocationUpdates(this)
+        mIALocationManager!!.requestLocationUpdates(request, this)
     }
 
     override fun onRequestPermissionsResult(
@@ -325,9 +414,19 @@ class TaipeiArSDKActivity : AppCompatActivity(), LocationListener,
         }
     }
 
+    private fun openFragmentPage(fragment: Fragment, tag: String) {
+        AnimationFragmentManager.getInstance().addFragmentPage(
+            this@TaipeiArSDKActivity,
+            R.id.activity_main_fl, fragment, tag
+        )
+    }
+
     override fun onLocationChanged(location: Location) {
-        mLastLocation = location
-        EventBus.getDefault().post(OmniEvent(OmniEvent.TYPE_USER_AR_LOCATION, location))
+        Log.e(LOG_TAG, "mIsIndoor$mIsIndoor")
+        if (!mIsIndoor) {
+            mLastLocation = location
+            EventBus.getDefault().post(OmniEvent(OmniEvent.TYPE_USER_AR_LOCATION, location))
+        }
     }
 
     override fun onConnected(bundle: Bundle?) {
@@ -342,7 +441,7 @@ class TaipeiArSDKActivity : AppCompatActivity(), LocationListener,
             )
         } else {
             if (mLocationRequest == null) {
-                mLocationRequest = com.google.android.gms.location.LocationRequest()
+                mLocationRequest = LocationRequest()
                 mLocationRequest!!.setInterval(1000)
                 mLocationRequest!!.setFastestInterval(1000)
                 mLocationRequest!!.setPriority(com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY)
@@ -356,17 +455,55 @@ class TaipeiArSDKActivity : AppCompatActivity(), LocationListener,
     }
 
     override fun onConnectionSuspended(i: Int) {
-        TODO("Not yet implemented")
+        mGoogleApiClient!!.connect()
     }
 
     override fun onConnectionFailed(ConnectionResult: ConnectionResult) {
-        TODO("Not yet implemented")
     }
 
-    private fun openFragmentPage(fragment: Fragment, tag: String) {
-        AnimationFragmentManager.getInstance().addFragmentPage(
-            this@TaipeiArSDKActivity,
-            R.id.activity_main_fl, fragment, tag
-        )
+    override fun onLocationChanged(iaLocation: IALocation?) {
+        Log.e(LOG_TAG, "mIsIndoor$mIsIndoor")
+        if (mIsIndoor) {
+            if (iaLocation != null && iaLocation.floorCertainty > 0.8) {
+                mLastLocation = iaLocation.toLocation()
+                EventBus.getDefault()
+                    .post(OmniEvent(OmniEvent.TYPE_USER_AR_LOCATION, mLastLocation))
+            }
+        }
+    }
+
+    override fun onStatusChanged(s: String, i: Int, bundle: Bundle?) {
+    }
+
+    override fun onEnterRegion(iaRegion: IARegion?) {
+        Log.e(LOG_TAG, "onEnterRegion ")
+        when {
+            iaRegion!!.type == IARegion.TYPE_UNKNOWN -> {
+                mIsIndoor = false
+            }
+            iaRegion.type == IARegion.TYPE_VENUE -> {
+                mIsIndoor = false
+            }
+            iaRegion.type == IARegion.TYPE_FLOOR_PLAN -> {
+                Log.e(LOG_TAG, "onEnterRegion floor plan : " + iaRegion.id)
+                mIsIndoor = true
+                EventBus.getDefault()
+                    .post(OmniEvent(OmniEvent.TYPE_FLOOR_PLAN_CHANGED, iaRegion.id))
+            }
+        }
+    }
+
+    override fun onExitRegion(iaRegion: IARegion?) {
+        when {
+            iaRegion!!.type == IARegion.TYPE_UNKNOWN -> {
+                mIsIndoor = false
+            }
+            iaRegion.type == IARegion.TYPE_VENUE -> {
+                mIsIndoor = false
+            }
+            iaRegion.type == IARegion.TYPE_FLOOR_PLAN -> {
+                mIsIndoor = false
+            }
+        }
     }
 }

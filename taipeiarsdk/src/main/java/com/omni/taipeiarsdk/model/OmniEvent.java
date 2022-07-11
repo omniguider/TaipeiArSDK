@@ -13,6 +13,7 @@ public class OmniEvent {
     public static final int TYPE_OPEN_AR_MISSION = 8;
     public static final int TYPE_MISSION_COMPLETE = 9;
     public static final int TYPE_REWARD_COMPLETE = 10;
+    public static final int TYPE_FLOOR_PLAN_CHANGED = 11;
 
     private int mType;
     private String mContent;

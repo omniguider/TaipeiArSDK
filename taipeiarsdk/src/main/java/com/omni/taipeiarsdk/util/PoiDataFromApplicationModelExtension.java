@@ -46,7 +46,6 @@ public class PoiDataFromApplicationModelExtension extends ArchitectViewExtension
      */
     @Override
     public void onLocationChanged(Location location) {
-        Log.e("LOG", "onLocationChanged: " + "poiDataFromApplicationMode");
 //        EventBus.getDefault().post(new OmniEvent(OmniEvent.TYPE_USER_AR_LOCATION, location));
         // radius in km ; 100 = 100km
         makeArPointsReq(location);

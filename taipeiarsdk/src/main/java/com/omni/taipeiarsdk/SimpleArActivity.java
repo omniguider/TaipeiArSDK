@@ -27,6 +27,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.provider.MediaStore;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
@@ -64,9 +65,14 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.TileOverlay;
+import com.google.android.gms.maps.model.TileOverlayOptions;
+import com.google.android.gms.maps.model.TileProvider;
+import com.google.android.gms.maps.model.UrlTileProvider;
 import com.google.android.material.button.MaterialButton;
 import com.omni.taipeiarsdk.model.ArScanInfo;
 import com.omni.taipeiarsdk.model.OmniEvent;
@@ -78,6 +84,7 @@ import com.omni.taipeiarsdk.model.tpe_location.IndexPoi;
 import com.omni.taipeiarsdk.network.NetworkManager;
 import com.omni.taipeiarsdk.network.TpeArApi;
 import com.omni.taipeiarsdk.pano.ArPattensFeedback;
+import com.omni.taipeiarsdk.tool.DialogTools;
 import com.omni.taipeiarsdk.tool.TaipeiArSDKText;
 import com.omni.taipeiarsdk.util.SampleCategory;
 import com.omni.taipeiarsdk.util.SampleData;
@@ -97,9 +104,13 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.omni.taipeiarsdk.TaipeiArSDKActivity.indexPoi_id;
 import static com.omni.taipeiarsdk.TaipeiArSDKActivity.isMission;
@@ -232,6 +243,8 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
     private String selection = "0";
     private AlertDialog poiInfoDialog;
 
+    private Map<String, TileOverlay> mTileOverlayMap;
+
     private List<SampleCategory> categories;
     private static final String sampleDefinitionsPath = "samples/samples.json";
     private final PermissionManager permissionManager = ArchitectView.getPermissionManager();
@@ -271,6 +284,10 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
                         architectView.callJavascript("World.refreshMarkerView()");
                     }
                 }
+                break;
+            case OmniEvent.TYPE_FLOOR_PLAN_CHANGED:
+                String floorPlanId = event.getContent();
+                fetchFloorPlan(floorPlanId, true, "1");
                 break;
             case OmniEvent.TYPE_USER_AR_INTERACTIVE_TEXT:
                 runOnUiThread(new Runnable() {
@@ -342,11 +359,14 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        mMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
+        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         mMap.getUiSettings().setZoomControlsEnabled(false);
         mMap.getUiSettings().setMapToolbarEnabled(false);
         mMap.getUiSettings().setCompassEnabled(true);
         mMap.getUiSettings().setZoomGesturesEnabled(true);
+        mMap.setBuildingsEnabled(false);
+        mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(
+                this, R.raw.style_json));
 
         TpeArApi.getInstance().getSpecificPoi(this, "poi", mLastLocation,
                 new NetworkManager.NetworkManagerListener<IndexFeedback>() {
@@ -359,6 +379,7 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
                         if (!getIntent().hasExtra(INTENT_EXTRAS_KEY_THEME_DATA) &&
                                 !getIntent().hasExtra(INTENT_EXTRAS_KEY_MISSION_DATA)) {
                             updatePOIMarkers(2000);
+                            fetchFloorPlan("5c22e6b6-4415-422c-a62a-3c119dcf7aad", true, "1");
                             architectView.callJavascript("World.refreshMarkerView(" + 2000 + ")");
                         }
                     }
@@ -473,7 +494,7 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
                 .bearing(azimuth)
                 .build();
         if (autoCamera) {
-            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+//            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
         }
 
 //        mUserMarker.setVisible(false);
@@ -1818,6 +1839,7 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
             range = (rangeMin + seekBar.getProgress() * rangeMax * 0.01) * 1000;
             range_tv.setText(String.format(getString(R.string.range), precision.format(range / 1000)));
             updatePOIMarkers(range);
+            fetchFloorPlan("5c22e6b6-4415-422c-a62a-3c119dcf7aad", true, "1");
             architectView.callJavascript("World.refreshMarkerView(" + range + ")");
         }
 
@@ -1829,4 +1851,77 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
         }
     };
+
+    private void fetchFloorPlan(String id, boolean isEnterRegion, String floorLevel) {
+        runOnUiThread(() -> fetchFloorPlan(id, floorLevel));
+    }
+
+    private void fetchFloorPlan(final String id, final String floorLevel) {
+        if (!NetworkManager.getInstance().isNetworkAvailable(this)) {
+            DialogTools.getInstance().showNoNetworkMessage(this);
+            return;
+        }
+        if (TextUtils.isEmpty(id)) {
+            DialogTools.getInstance().showErrorMessage(SimpleArActivity.this,
+                    "Loading building map error", "There's no floor plan id !");
+            return;
+        }
+
+        if (mMap != null) {
+//            mMap.clear();
+            if (mUserMarker != null) {
+                mUserMarker.remove();
+                mUserMarker = null;
+            }
+            if (mLastLocation != null) {
+                addUserMarker(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()),
+                        mLastLocation);
+            }
+
+            TileProvider tileProvider = new UrlTileProvider(TaipeiArSDKText.TILE_WIDTH, TaipeiArSDKText.TILE_HEIGHT) {
+                @Override
+                public URL getTileUrl(int x, int y, int zoom) {
+                    String s = String.format(NetworkManager.TPE_DOMAIN_NAME + "map/tile/%s/%d/%d/%d.png",
+                            id, zoom, x, y);
+                    Log.e("LOG","getTileUrl"+s);
+
+                    if (!checkTileExists(x, y, zoom)) {
+                        return null;
+                    }
+                    try {
+                        return new URL(s);
+                    } catch (MalformedURLException e) {
+                        Log.e("@W@", "getTileUrl get exception message === " + e.getMessage() +
+                                "\ncause === " + e.getCause() + "\nlocalizedMessage === " + e.getLocalizedMessage());
+                        throw new AssertionError(e);
+                    }
+                }
+            };
+
+            if (mTileOverlayMap != null) {
+                // when floor changed and in the same building, remove tile overlay
+                TileOverlay previousTile = mTileOverlayMap.get("1");
+                if (previousTile != null) {
+                    previousTile.remove();
+                    previousTile.clearTileCache();
+                }
+            } else {
+                mTileOverlayMap = new HashMap<>();
+            }
+
+            // add current floor tile overlay
+            TileOverlay tile = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(tileProvider));
+            mTileOverlayMap.put("1", tile);
+
+//            addPOIMarkers(mIndexPOI);
+
+            if (mUserMarker != null) {
+                mUserMarker.setVisible(true);
+            }
+        }
+    }
+
+    private boolean checkTileExists(int x, int y, int zoom) {
+        return zoom >= TaipeiArSDKText.MAP_MIN_ZOOM_LEVEL && zoom <= TaipeiArSDKText.MAP_MAX_ZOOM_LEVEL;
+    }
 }

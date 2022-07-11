@@ -57,6 +57,7 @@ public class NetworkManager {
     public static final String ERROR_MESSAGE_API_TIME_OUT = "Call API timeout";
 
     public static final String TPE_DOMAIN_NAME = "https://ar-taipei-test.omniguider.com/";
+    public static final String DOMAIN_NAME = "https://navi.taipei/";
     public static final String TPE_WEB_DOMAIN = "https://vr.tycg.gov.tw/";
 
     public static final String API_RESULT_TRUE = "true";
