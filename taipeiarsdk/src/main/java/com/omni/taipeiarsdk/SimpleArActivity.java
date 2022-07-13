@@ -112,6 +112,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.omni.taipeiarsdk.TaipeiArSDKActivity.arContent;
+import static com.omni.taipeiarsdk.TaipeiArSDKActivity.ar_info_Img;
 import static com.omni.taipeiarsdk.TaipeiArSDKActivity.indexPoi_id;
 import static com.omni.taipeiarsdk.TaipeiArSDKActivity.isMission;
 import static com.omni.taipeiarsdk.TaipeiArSDKActivity.missionId;
@@ -271,12 +273,22 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
                 if (indexPoi != null) {
                     if (isMission.equals("true") && !inTriggerRange)
                         detectMission();
+                    else if (isMission.equals("false") &&
+                            indexPoi.getAr_trigger().getActive_method().equals("0"))
+                        detectArTrigger();
                 }
 
+//                Log.e("LOG", "last distance" +
+//                        getDistance(mLastLocation.getLatitude(), mLastLocation.getLongitude(),
+//                                updateMarkerLocation.getLatitude(), updateMarkerLocation.getLongitude()));
                 if (getDistance(mLastLocation.getLatitude(), mLastLocation.getLongitude(),
                         updateMarkerLocation.getLatitude(), updateMarkerLocation.getLongitude()) > 10) {
                     updateMarkerLocation.setLatitude(mLastLocation.getLatitude());
                     updateMarkerLocation.setLongitude(mLastLocation.getLongitude());
+
+                    float accuracy_indoor = mLastLocation.hasAccuracy() ? mLastLocation.getAccuracy() : 1000;
+                    architectView.setLocation(mLastLocation.getLatitude(), mLastLocation.getLongitude(),
+                            mLastLocation.getAltitude(), accuracy_indoor);
                     if (!getIntent().hasExtra(INTENT_EXTRAS_KEY_THEME_DATA) &&
                             !getIntent().hasExtra(INTENT_EXTRAS_KEY_MISSION_DATA)) {
                         architectView.callJavascript("World.refreshMarkerView(" + range + ")");
@@ -465,7 +477,6 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
         if (mMap == null) {
             return;
         }
-        Log.e("LOG", "azimuth" + azimuth);
         if (mUserMarker == null) {
             mUserMarker = mMap.addMarker(new MarkerOptions()
                     .flat(true)
@@ -831,6 +842,11 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
             }
         });
 
+        if (ar_info_Img != null) {
+            NetworkManager.getInstance().setNetworkImage(SimpleArActivity.this, target_hint, ar_info_Img);
+            Log.e("LOG", "ar_info_Img" + ar_info_Img);
+        }
+
         ar_img_btn_tv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -1079,6 +1095,7 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
                         @Override
                         public void onClick(View view) {
                             TaipeiArSDKActivity.ar_open_by_poi = "true";
+                            TaipeiArSDKActivity.ar_info_Img = indexPoi.getAr_trigger().getIdentify_image_path();
                             mEventBus.post(new OmniEvent(OmniEvent.TYPE_OPEN_AR_RECOGNIZE, indexPoi.getAr()));
                         }
                     });
@@ -1264,8 +1281,10 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
                             Double.parseDouble(indexPoi.getLng()));
                     double deltaX = (Double.parseDouble(indexPoi.getLat()) - mLastLocation.getLatitude());
                     double deltaY = (Double.parseDouble(indexPoi.getLng()) - mLastLocation.getLongitude());
-                    double lat = mLastLocation.getLatitude() + deltaX / distance * 20;
-                    double lng = mLastLocation.getLongitude() + deltaY / distance * 20;
+                    //        double lat = mLastLocation.getLatitude() + deltaX / distance * 20;
+                    //        double lng = mLastLocation.getLongitude() + deltaY / distance * 20;
+                    double lat = Double.parseDouble(indexPoi.getLat());
+                    double lng = Double.parseDouble(indexPoi.getLng());
                     double degree = findDegree((float) deltaX, (float) deltaY);
 
                     Log.e("LOG", "distance" + distance);
@@ -1314,13 +1333,14 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
                     break;
                 case "2":
                     TaipeiArSDKActivity.ar_open_by_poi = "true";
+                    TaipeiArSDKActivity.ar_info_Img = indexPoi.getAr_trigger().getIdentify_image_path();
                     mEventBus.post(new OmniEvent(OmniEvent.TYPE_OPEN_AR_RECOGNIZE, indexPoi.getAr()));
                     break;
             }
         });
     }
 
-    private void detectArMission() {
+    private void detectArTrigger() {
         double distance = getDistance(
                 mLastLocation.getLatitude(),
                 mLastLocation.getLongitude(),
@@ -1328,38 +1348,22 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
                 Double.parseDouble(indexPoi.getLng()));
         double deltaX = (Double.parseDouble(indexPoi.getLat()) - mLastLocation.getLatitude());
         double deltaY = (Double.parseDouble(indexPoi.getLng()) - mLastLocation.getLongitude());
-        double lat = mLastLocation.getLatitude() + deltaX / distance * 20;
-        double lng = mLastLocation.getLongitude() + deltaY / distance * 20;
+//        double lat = mLastLocation.getLatitude() + deltaX / distance * 20;
+//        double lng = mLastLocation.getLongitude() + deltaY / distance * 20;
+        double lat = Double.parseDouble(indexPoi.getLat());
+        double lng = Double.parseDouble(indexPoi.getLng());
         double degree = findDegree((float) deltaX, (float) deltaY);
 
-        Log.e(TAG, "detectArMission distance" + distance);
+        Log.e(TAG, "detectArTrigger distance" + distance);
 
-        if (mGrid.getPass_method().equals("AR") &&
-                indexPoi.getAr_trigger().getActive_method().equals("0")) {
-            if (distance <= Integer.parseInt(indexPoi.getAr_trigger().getDistance())) {
-                if (indexPoi.getAr().getContent_type().equals("3d_model")) {
-                    architectView.callJavascript("World.createModelAtLocation(" +
-                            lat + "," + lng +
-                            "," + 0.45 + "," + 0 + "," + degree + ",'" + indexPoi.getAr().getContent() + "')");
-                } else if (indexPoi.getAr().getContent_type().equals("image")) {
-                    architectView.callJavascript("World.createImageAtLocation(" +
-                            lat + "," + lng + ",'" + indexPoi.getAr().getContent() + "')");
-                }
-                showHintMessage(String.format(getString(R.string.arrival), indexPoi.getName()),
-                        getString(R.string.congratulation));
-                TpeArApi.getInstance().getMissionComplete(this,
-                        missionId, ng_id, userId,
-                        new NetworkManager.NetworkManagerListener<MissionCompleteFeedback>() {
-                            @Override
-                            public void onSucceed(MissionCompleteFeedback feedback) {
-                                EventBus.getDefault().post(new OmniEvent(OmniEvent.TYPE_MISSION_COMPLETE, ""));
-                            }
-
-                            @Override
-                            public void onFail(VolleyError error, boolean shouldRetry) {
-
-                            }
-                        });
+        if (distance <= Integer.parseInt(indexPoi.getAr_trigger().getDistance())) {
+            if (indexPoi.getAr().getContent_type().equals("3d_model")) {
+                architectView.callJavascript("World.createModelAtLocation(" +
+                        lat + "," + lng +
+                        "," + 0.45 + "," + 0 + "," + degree + ",'" + indexPoi.getAr().getContent() + "')");
+            } else if (indexPoi.getAr().getContent_type().equals("image")) {
+                architectView.callJavascript("World.createImageAtLocation(" +
+                        lat + "," + lng + ",'" + indexPoi.getAr().getContent() + "')");
             }
         }
     }
@@ -1427,8 +1431,10 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
                 Double.parseDouble(indexPoi.getLng()));
         double deltaX = (Double.parseDouble(indexPoi.getLat()) - mLastLocation.getLatitude());
         double deltaY = (Double.parseDouble(indexPoi.getLng()) - mLastLocation.getLongitude());
-        double lat = mLastLocation.getLatitude() + deltaX / distance * 20;
-        double lng = mLastLocation.getLongitude() + deltaY / distance * 20;
+        //        double lat = mLastLocation.getLatitude() + deltaX / distance * 20;
+//        double lng = mLastLocation.getLongitude() + deltaY / distance * 20;
+        double lat = Double.parseDouble(indexPoi.getLat());
+        double lng = Double.parseDouble(indexPoi.getLng());
         double degree = findDegree((float) deltaX, (float) deltaY);
         if (indexPoi.getAr().getContent_type().equals("3d_model")) {
             architectView.callJavascript("World.createModelAtLocation(" +
@@ -1883,7 +1889,6 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
                 public URL getTileUrl(int x, int y, int zoom) {
                     String s = String.format(NetworkManager.TPE_DOMAIN_NAME + "map/tile/%s/%d/%d/%d.png",
                             id, zoom, x, y);
-                    Log.e("LOG","getTileUrl"+s);
 
                     if (!checkTileExists(x, y, zoom)) {
                         return null;
@@ -1891,8 +1896,6 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
                     try {
                         return new URL(s);
                     } catch (MalformedURLException e) {
-                        Log.e("@W@", "getTileUrl get exception message === " + e.getMessage() +
-                                "\ncause === " + e.getCause() + "\nlocalizedMessage === " + e.getLocalizedMessage());
                         throw new AssertionError(e);
                     }
                 }

@@ -14,4 +14,8 @@ public class ArTrigger implements Serializable {
     public String getDistance() {
         return distance;
     }
+
+    public String getIdentify_image_path() {
+        return identify_image_path;
+    }
 }

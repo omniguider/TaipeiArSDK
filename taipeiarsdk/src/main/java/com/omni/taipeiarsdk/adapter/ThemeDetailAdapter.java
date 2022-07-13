@@ -33,7 +33,7 @@ public class ThemeDetailAdapter extends RecyclerView.Adapter<ThemeDetailAdapter.
     private final Context mContext;
     private List<IndexPoi> mIndexPoi;
     private AlertDialog poiInfoDialog;
-    private DecimalFormat df = new DecimalFormat("##0.00");
+    private DecimalFormat df = new DecimalFormat("##0");
 
     public ThemeDetailAdapter(Context context, List<IndexPoi> data) {
         mContext = context;

@@ -2,7 +2,6 @@ package com.omni.taipeiarsdk
 
 import android.Manifest
 import android.app.AlertDialog
-import android.bluetooth.BluetoothAdapter
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
@@ -15,7 +14,6 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.core.app.ActivityCompat
@@ -171,6 +169,7 @@ class TaipeiArSDKActivity : AppCompatActivity(), IARegion.Listener, IALocationLi
         }
 
         findViewById<CardView>(R.id.ar_guide).setOnClickListener {
+            ar_open_by_poi = "false"
             isMission = "false"
             mIndexPOI = emptyArray()
             sampleData = categories!![9].samples[1] //ar_guide
@@ -183,6 +182,7 @@ class TaipeiArSDKActivity : AppCompatActivity(), IARegion.Listener, IALocationLi
         findViewById<LinearLayout>(R.id.ar_recognize).setOnClickListener {
             ar_open_by_poi = "false"
             isMission = "false"
+            ar_info_Img = ""
             sampleData = categories!![6].samples[0]
             val intent = Intent(this@TaipeiArSDKActivity, sampleData!!.activityClass)
             intent.putExtra(SimpleArActivity.INTENT_EXTRAS_KEY_SAMPLE, sampleData)
@@ -252,11 +252,27 @@ class TaipeiArSDKActivity : AppCompatActivity(), IARegion.Listener, IALocationLi
         if (ar_open_by_poi == "true" && isMission == "false") {
             ar_open_by_poi = "false"
 
-            sampleData = categories!![9].samples[1] //ar_guide
-            val intent = Intent(this@TaipeiArSDKActivity, sampleData!!.activityClass)
-            intent.putExtra(SimpleArActivity.INTENT_EXTRAS_KEY_SAMPLE, sampleData)
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-            startActivity(intent)
+            if (mIndexPOI.isNotEmpty()) {
+                sampleData = categories!![9].samples[1] //ar_guide
+                val intent = Intent(this@TaipeiArSDKActivity, sampleData!!.activityClass)
+                intent.putExtra(SimpleArActivity.INTENT_EXTRAS_KEY_SAMPLE, sampleData)
+                intent.putExtra(
+                    SimpleArActivity.INTENT_EXTRAS_KEY_THEME_DATA,
+                    mIndexPOI
+                )
+                intent.putExtra(
+                    SimpleArActivity.INTENT_EXTRAS_KEY_THEME_TITLE,
+                    themeTitle
+                )
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                startActivity(intent)
+            } else {
+                sampleData = categories!![9].samples[1] //ar_guide
+                val intent = Intent(this@TaipeiArSDKActivity, sampleData!!.activityClass)
+                intent.putExtra(SimpleArActivity.INTENT_EXTRAS_KEY_SAMPLE, sampleData)
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                startActivity(intent)
+            }
         }
     }
 
@@ -271,6 +287,11 @@ class TaipeiArSDKActivity : AppCompatActivity(), IARegion.Listener, IALocationLi
             mIALocationManager!!.destroy()
             mIALocationManager = null
         }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        mIsIndoor = false
     }
 
     private fun checkLocationService() {
@@ -396,7 +417,7 @@ class TaipeiArSDKActivity : AppCompatActivity(), IARegion.Listener, IALocationLi
         mIALocationManager!!.registerRegionListener(this)
 
         val request = IALocationRequest.create()
-        request.fastestInterval = 1000
+        request.fastestInterval = 500
         request.smallestDisplacement = 0.6f
         mIALocationManager!!.removeLocationUpdates(this)
         mIALocationManager!!.requestLocationUpdates(request, this)
@@ -421,14 +442,6 @@ class TaipeiArSDKActivity : AppCompatActivity(), IARegion.Listener, IALocationLi
         )
     }
 
-    override fun onLocationChanged(location: Location) {
-        Log.e(LOG_TAG, "mIsIndoor$mIsIndoor")
-        if (!mIsIndoor) {
-            mLastLocation = location
-            EventBus.getDefault().post(OmniEvent(OmniEvent.TYPE_USER_AR_LOCATION, location))
-        }
-    }
-
     override fun onConnected(bundle: Bundle?) {
         if (ActivityCompat.checkSelfPermission(
                 this,
@@ -442,9 +455,9 @@ class TaipeiArSDKActivity : AppCompatActivity(), IARegion.Listener, IALocationLi
         } else {
             if (mLocationRequest == null) {
                 mLocationRequest = LocationRequest()
-                mLocationRequest!!.setInterval(1000)
-                mLocationRequest!!.setFastestInterval(1000)
-                mLocationRequest!!.setPriority(com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY)
+                mLocationRequest!!.interval = 1000
+                mLocationRequest!!.fastestInterval = 1000
+                mLocationRequest!!.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
             }
             LocationServices.FusedLocationApi.requestLocationUpdates(
                 mGoogleApiClient!!,
@@ -461,8 +474,14 @@ class TaipeiArSDKActivity : AppCompatActivity(), IARegion.Listener, IALocationLi
     override fun onConnectionFailed(ConnectionResult: ConnectionResult) {
     }
 
+    override fun onLocationChanged(location: Location) {
+        if (!mIsIndoor) {
+            mLastLocation = location
+            EventBus.getDefault().post(OmniEvent(OmniEvent.TYPE_USER_AR_LOCATION, location))
+        }
+    }
+
     override fun onLocationChanged(iaLocation: IALocation?) {
-        Log.e(LOG_TAG, "mIsIndoor$mIsIndoor")
         if (mIsIndoor) {
             if (iaLocation != null && iaLocation.floorCertainty > 0.8) {
                 mLastLocation = iaLocation.toLocation()
@@ -486,7 +505,9 @@ class TaipeiArSDKActivity : AppCompatActivity(), IARegion.Listener, IALocationLi
             }
             iaRegion.type == IARegion.TYPE_FLOOR_PLAN -> {
                 Log.e(LOG_TAG, "onEnterRegion floor plan : " + iaRegion.id)
+//                if (iaRegion.id != "919f0ac4-62e4-48ae-8217-dcb707bbcdc9") {
                 mIsIndoor = true
+//                }
                 EventBus.getDefault()
                     .post(OmniEvent(OmniEvent.TYPE_FLOOR_PLAN_CHANGED, iaRegion.id))
             }

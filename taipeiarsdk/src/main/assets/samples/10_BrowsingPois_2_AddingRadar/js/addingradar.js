@@ -168,23 +168,23 @@ var World = {
             var altitude;
             if (distance > 0)
             {
-               altitude =  10*World.showPlaceNr +500;
+               altitude =  10*World.showPlaceNr +350;
             }
             if (distance > 50)
             {
-               altitude =  30*World.showPlaceNr +550;
+               altitude =  30*World.showPlaceNr +400;
             }
             if (distance > 100)
             {
-               altitude =  60*World.showPlaceNr +600;
+               altitude =  60*World.showPlaceNr +450;
             }
             if (distance > 250)
             {
-               altitude =  90*World.showPlaceNr +800;
+               altitude =  90*World.showPlaceNr +650;
             }
             if (distance > 500)
             {
-               altitude =  300*World.showPlaceNr +900;
+               altitude =  300*World.showPlaceNr +750;
             }
             World.showPlaceNr++;
             altitude = altitude/8;

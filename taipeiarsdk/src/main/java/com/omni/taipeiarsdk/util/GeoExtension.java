@@ -8,9 +8,18 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.indooratlas.android.sdk.IALocation;
+import com.indooratlas.android.sdk.IALocationListener;
+import com.indooratlas.android.sdk.IALocationManager;
+import com.indooratlas.android.sdk.IALocationRequest;
+import com.indooratlas.android.sdk.IARegion;
 import com.wikitude.architect.ArchitectView;
 
-public class GeoExtension extends ArchitectViewExtension implements LocationListener {
+import org.greenrobot.eventbus.EventBus;
+
+import static com.omni.taipeiarsdk.tool.TaipeiArSDKText.LOG_TAG;
+
+public class GeoExtension extends ArchitectViewExtension implements LocationListener, IARegion.Listener, IALocationListener {
 
     /**
      * Very basic location provider to enable location updates.
@@ -18,6 +27,7 @@ public class GeoExtension extends ArchitectViewExtension implements LocationList
      * advanced location provider for your app. (see https://developer.android.com/training/location/index.html)
      */
     private LocationProvider locationProvider;
+    private boolean mIsIndoor = false;
 
     /**
      * Error callback of the LocationProvider, noProvidersEnabled is called when neither location over GPS nor
@@ -52,9 +62,39 @@ public class GeoExtension extends ArchitectViewExtension implements LocationList
     }
 
 
+    private IALocationManager mIALocationManager;
+
     @Override
     public void onCreate() {
         locationProvider = new LocationProvider(activity, this, errorCallback);
+
+        initIALocationManager();
+    }
+
+    private void initIALocationManager() {
+        if (mIALocationManager == null) {
+            mIALocationManager = IALocationManager.create(activity.getApplication());
+            mIALocationManager.lockIndoors(true);
+        } else {
+            mIALocationManager.unregisterRegionListener(this);
+        }
+        mIALocationManager.registerRegionListener(this);
+
+        IALocationRequest request = IALocationRequest.create();
+        request.setFastestInterval(500);
+        request.setSmallestDisplacement(0.6f);
+
+        mIALocationManager.removeLocationUpdates(this);
+        mIALocationManager.requestLocationUpdates(request, this);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (mIALocationManager != null) {
+            mIALocationManager.destroy();
+            mIALocationManager = null;
+        }
     }
 
     @Override
@@ -84,14 +124,30 @@ public class GeoExtension extends ArchitectViewExtension implements LocationList
     @Override
     public void onLocationChanged(Location location) {
         float accuracy = location.hasAccuracy() ? location.getAccuracy() : 1000;
-        Log.e("LOG", "accuracy" + accuracy);
-        if (location.hasAltitude()) {
-            architectView.setLocation(location.getLatitude(), location.getLongitude(), location.getAltitude(), accuracy);
-        } else {
-            architectView.setLocation(location.getLatitude(), location.getLongitude(), accuracy);
+        if (!mIsIndoor) {
+            if (location.hasAltitude()) {
+                architectView.setLocation(location.getLatitude(), location.getLongitude(), location.getAltitude(), accuracy);
+            } else {
+                architectView.setLocation(location.getLatitude(), location.getLongitude(), accuracy);
+            }
+            if (locationListenerExtension != null) {
+                locationListenerExtension.onLocationChanged(location);
+            }
         }
-        if (locationListenerExtension != null) {
-            locationListenerExtension.onLocationChanged(location);
+    }
+
+    @Override
+    public void onLocationChanged(IALocation iaLocation) {
+        float accuracy = iaLocation.toLocation().hasAccuracy() ? iaLocation.getAccuracy() : 1000;
+        if (mIsIndoor && iaLocation.getFloorCertainty() > 0.8) {
+            if (iaLocation.toLocation().hasAltitude()) {
+                architectView.setLocation(iaLocation.getLatitude(), iaLocation.getLongitude(), iaLocation.getAltitude(), accuracy);
+            } else {
+                architectView.setLocation(iaLocation.getLatitude(), iaLocation.getLongitude(), accuracy);
+            }
+            if (locationListenerExtension != null) {
+                locationListenerExtension.onLocationChanged(iaLocation.toLocation());
+            }
         }
     }
 
@@ -113,5 +169,28 @@ public class GeoExtension extends ArchitectViewExtension implements LocationList
 
     public void setLocationListenerExtension(LocationListener extension) {
         locationListenerExtension = extension;
+    }
+
+    @Override
+    public void onEnterRegion(IARegion iaRegion) {
+        Log.e(LOG_TAG, "GeoExtension onEnterRegion");
+        if (iaRegion.getType() == IARegion.TYPE_UNKNOWN) {
+            mIsIndoor = false;
+        } else if (iaRegion.getType() == IARegion.TYPE_VENUE) {
+            mIsIndoor = false;
+        } else if (iaRegion.getType() == IARegion.TYPE_FLOOR_PLAN) {
+            mIsIndoor = true;
+        }
+    }
+
+    @Override
+    public void onExitRegion(IARegion iaRegion) {
+        if (iaRegion.getType() == IARegion.TYPE_UNKNOWN) {
+            mIsIndoor = false;
+        } else if (iaRegion.getType() == IARegion.TYPE_VENUE) {
+            mIsIndoor = false;
+        } else if (iaRegion.getType() == IARegion.TYPE_FLOOR_PLAN) {
+            mIsIndoor = false;
+        }
     }
 }

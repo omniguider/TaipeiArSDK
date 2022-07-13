@@ -66,8 +66,8 @@ public class ThemeGuideAdapter extends RecyclerView.Adapter<ThemeGuideAdapter.Vi
             public void onClick(View view) {
                 themeTitle = data.getName();
 
-                EventBus.getDefault().post(new OmniEvent(OmniEvent.TYPE_OPEN_AR_GUIDE, data.getPoi()));
-//                openFragmentPage(ThemeDetailFragment.Companion.newInstance(data), ThemeDetailFragment.TAG);
+//                EventBus.getDefault().post(new OmniEvent(OmniEvent.TYPE_OPEN_AR_GUIDE, data.getPoi()));
+                openFragmentPage(ThemeDetailFragment.Companion.newInstance(data), ThemeDetailFragment.TAG);
             }
         });
     }
