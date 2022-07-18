@@ -18,6 +18,7 @@ public class IndexPoi implements Serializable {
     private Category category;
     private ArTrigger ar_trigger;
     private Ar ar;
+    private Beacon beacon;
     private String gridFinished;
 
     private float distance;
@@ -66,6 +67,10 @@ public class IndexPoi implements Serializable {
         return ar;
     }
 
+    public Beacon getBeacon() {
+        return beacon;
+    }
+
     public String getGridFinished() {
         return gridFinished;
     }
@@ -73,7 +78,6 @@ public class IndexPoi implements Serializable {
     public void setGridFinished(String gridFinished) {
         this.gridFinished = gridFinished;
     }
-
 
     public float getDistance() {
         return distance;

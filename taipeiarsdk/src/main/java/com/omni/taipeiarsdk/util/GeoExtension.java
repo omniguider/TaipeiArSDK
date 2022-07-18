@@ -125,11 +125,12 @@ public class GeoExtension extends ArchitectViewExtension implements LocationList
     public void onLocationChanged(Location location) {
         float accuracy = location.hasAccuracy() ? location.getAccuracy() : 1000;
         if (!mIsIndoor) {
-            if (location.hasAltitude()) {
-                architectView.setLocation(location.getLatitude(), location.getLongitude(), location.getAltitude(), accuracy);
-            } else {
-                architectView.setLocation(location.getLatitude(), location.getLongitude(), accuracy);
-            }
+//            if (location.hasAltitude()) {
+//                architectView.setLocation(location.getLatitude(), location.getLongitude(), location.getAltitude(), accuracy);
+//            } else {
+//                architectView.setLocation(location.getLatitude(), location.getLongitude(), accuracy);
+//            }
+            architectView.setLocation(location.getLatitude(), location.getLongitude(), 10, accuracy);
             if (locationListenerExtension != null) {
                 locationListenerExtension.onLocationChanged(location);
             }
@@ -140,11 +141,13 @@ public class GeoExtension extends ArchitectViewExtension implements LocationList
     public void onLocationChanged(IALocation iaLocation) {
         float accuracy = iaLocation.toLocation().hasAccuracy() ? iaLocation.getAccuracy() : 1000;
         if (mIsIndoor && iaLocation.getFloorCertainty() > 0.8) {
-            if (iaLocation.toLocation().hasAltitude()) {
-                architectView.setLocation(iaLocation.getLatitude(), iaLocation.getLongitude(), iaLocation.getAltitude(), accuracy);
-            } else {
-                architectView.setLocation(iaLocation.getLatitude(), iaLocation.getLongitude(), accuracy);
-            }
+//            if (iaLocation.toLocation().hasAltitude()) {
+//                architectView.setLocation(iaLocation.getLatitude(), iaLocation.getLongitude(), iaLocation.getAltitude(), accuracy);
+//            } else {
+//                architectView.setLocation(iaLocation.getLatitude(), iaLocation.getLongitude(), accuracy);
+//            }
+
+            architectView.setLocation(iaLocation.getLatitude(), iaLocation.getLongitude(), 10, accuracy);
             if (locationListenerExtension != null) {
                 locationListenerExtension.onLocationChanged(iaLocation.toLocation());
             }

@@ -168,23 +168,23 @@ var World = {
             var altitude;
             if (distance > 0)
             {
-               altitude =  10*World.showPlaceNr +350;
+               altitude =  5*World.showPlaceNr +30;
             }
             if (distance > 50)
             {
-               altitude =  30*World.showPlaceNr +400;
+               altitude =  15*World.showPlaceNr +60;
             }
             if (distance > 100)
             {
-               altitude =  60*World.showPlaceNr +450;
+               altitude =  30*World.showPlaceNr +90;
             }
             if (distance > 250)
             {
-               altitude =  90*World.showPlaceNr +650;
+               altitude =  45*World.showPlaceNr +150;
             }
             if (distance > 500)
             {
-               altitude =  300*World.showPlaceNr +750;
+               altitude =  120*World.showPlaceNr +250;
             }
             World.showPlaceNr++;
             altitude = altitude/8;
@@ -235,8 +235,10 @@ var World = {
 	// sets/updates distances of all makers so they are available way faster than calling (time-consuming) distanceToUser() method all the time
 	updateDistanceToUserValues: function updateDistanceToUserValuesFn() {
 		for (var i = 0; i < World.markerList.length; i++) {
-			World.markerList[i].distanceToUser = World.markerList[i].markerObject.locations[0].distanceToUser();
-			console.info('distanceToUser: ' + World.markerList[i].distanceToUser);
+			var distance = World.markerList[i].markerObject.locations[0].distanceToUser();
+			var distanceStr = (distance > 999) ? ((distance / 1000).toFixed(2) + " km") : ((Math.round(distance)).toString() + " m")
+            World.markerList[i].descriptionLabel.text = distanceStr;
+            World.markerList[i].descriptionSelectLabel.text = distanceStr;
 		}
 	},
 
@@ -300,8 +302,9 @@ var World = {
 	},
 
 	createModelAtLocation: function createModelAtLocationFn(lat, lng, size, altitude, rotateY, url) {
-        console.info('createModelAtLocation');
-        var location = new AR.GeoLocation(lat, lng);
+        console.info('createModelAtLocation'+size);
+        console.info('createModelAtLocation' + altitude);
+        var location = new AR.GeoLocation(lat, lng, parseFloat(altitude - 15));
 
         if(World.image){
             if(!World.image.destroyed){
@@ -316,16 +319,24 @@ var World = {
             }
             World.model = null;
         }
+        var scaleValue = parseFloat(size);
         World.model = new AR.Model(url, {
             onLoaded: this.worldLoaded,
             onError: World.onError,
             scale: {
-                x: size,
-                y: size,
-                z: size
+                x: scaleValue,
+                y: scaleValue,
+                z: scaleValue
             },
             rotate: {
                 y: rotateY
+            },
+            onScaleChanged: function(scale) {
+                var s = scaleValue * scale;
+                this.scale = {x: s, y: s, z: s};
+            },
+            onScaleEnded: function(scale) {
+                scaleValue = this.scale.x;
             },
         });
 

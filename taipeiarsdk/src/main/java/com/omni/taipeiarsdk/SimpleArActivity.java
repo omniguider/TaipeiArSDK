@@ -232,6 +232,7 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
     private GridData mGrid;
     private IndexPoi indexPoi = null;
     private boolean inTriggerRange = false;
+    private boolean isTriggerAR = false;
     private SeekBar mSeekBar;
     private TextView range_tv;
     private double range = 2000;
@@ -271,30 +272,15 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
 
                 showUserPosition();
                 if (indexPoi != null) {
-                    if (isMission.equals("true") && !inTriggerRange)
+                    if (isMission.equals("true") && !inTriggerRange) {
                         detectMission();
-                    else if (isMission.equals("false") &&
-                            indexPoi.getAr_trigger().getActive_method().equals("0"))
+                    } else if (isMission.equals("false") &&
+                            indexPoi.getAr_trigger().getActive_method().equals("0") &&
+                            !isTriggerAR) {
                         detectArTrigger();
-                }
-
-//                Log.e("LOG", "last distance" +
-//                        getDistance(mLastLocation.getLatitude(), mLastLocation.getLongitude(),
-//                                updateMarkerLocation.getLatitude(), updateMarkerLocation.getLongitude()));
-                if (getDistance(mLastLocation.getLatitude(), mLastLocation.getLongitude(),
-                        updateMarkerLocation.getLatitude(), updateMarkerLocation.getLongitude()) > 10) {
-                    updateMarkerLocation.setLatitude(mLastLocation.getLatitude());
-                    updateMarkerLocation.setLongitude(mLastLocation.getLongitude());
-
-                    float accuracy_indoor = mLastLocation.hasAccuracy() ? mLastLocation.getAccuracy() : 1000;
-                    architectView.setLocation(mLastLocation.getLatitude(), mLastLocation.getLongitude(),
-                            mLastLocation.getAltitude(), accuracy_indoor);
-                    if (!getIntent().hasExtra(INTENT_EXTRAS_KEY_THEME_DATA) &&
-                            !getIntent().hasExtra(INTENT_EXTRAS_KEY_MISSION_DATA)) {
-                        architectView.callJavascript("World.refreshMarkerView(" + range + ")");
-                    } else {
-                        architectView.callJavascript("World.refreshMarkerView()");
                     }
+
+                    architectView.callJavascript("World.updateDistanceToUserValues()");
                 }
                 break;
             case OmniEvent.TYPE_FLOOR_PLAN_CHANGED:
@@ -1223,6 +1209,8 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
                     break;
                 }
             }
+        } else {
+            isTriggerAR = false;
         }
 
         View view = LayoutInflater.from(this).inflate(R.layout.dialog_poi_info, null, false);
@@ -1295,7 +1283,9 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
                         if (indexPoi.getAr().getContent_type().equals("3d_model")) {
                             architectView.callJavascript("World.createModelAtLocation(" +
                                     lat + "," + lng +
-                                    "," + 0.45 + "," + 0 + "," + degree + ",'" + indexPoi.getAr().getContent() + "')");
+                                    "," + indexPoi.getAr().getSize() + "," +
+                                    indexPoi.getAr().getHeigh() + "," + degree + ",'" +
+                                    indexPoi.getAr().getContent() + "')");
                         } else if (indexPoi.getAr().getContent_type().equals("image")) {
                             architectView.callJavascript("World.createImageAtLocation(" +
                                     lat + "," + lng + ",'" + indexPoi.getAr().getContent() + "')");
@@ -1357,10 +1347,13 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
         Log.e(TAG, "detectArTrigger distance" + distance);
 
         if (distance <= Integer.parseInt(indexPoi.getAr_trigger().getDistance())) {
+            isTriggerAR = true;
             if (indexPoi.getAr().getContent_type().equals("3d_model")) {
                 architectView.callJavascript("World.createModelAtLocation(" +
                         lat + "," + lng +
-                        "," + 0.45 + "," + 0 + "," + degree + ",'" + indexPoi.getAr().getContent() + "')");
+                        "," + indexPoi.getAr().getSize() + "," +
+                        indexPoi.getAr().getHeigh() + "," + degree + ",'" +
+                        indexPoi.getAr().getContent() + "')");
             } else if (indexPoi.getAr().getContent_type().equals("image")) {
                 architectView.callJavascript("World.createImageAtLocation(" +
                         lat + "," + lng + ",'" + indexPoi.getAr().getContent() + "')");
@@ -1439,7 +1432,9 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
         if (indexPoi.getAr().getContent_type().equals("3d_model")) {
             architectView.callJavascript("World.createModelAtLocation(" +
                     lat + "," + lng +
-                    "," + 0.45 + "," + 0 + "," + degree + ",'" + indexPoi.getAr().getContent() + "')");
+                    "," + indexPoi.getAr().getSize() + "," +
+                    indexPoi.getAr().getHeigh() + "," + degree + ",'" +
+                    indexPoi.getAr().getContent() + "')");
         } else if (indexPoi.getAr().getContent_type().equals("image")) {
             architectView.callJavascript("World.createImageAtLocation(" +
                     lat + "," + lng + ",'" + indexPoi.getAr().getContent() + "')");
