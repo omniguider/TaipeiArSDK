@@ -98,4 +98,6 @@
     <string name="view_list"><u>地點列表</u></string>
     <string name="detail_info"><u>詳細資訊</u></string>
     <string name="navigation">導覽</string>
+    <string name="find">找找看</string>
+    <string name="geofence_ar_trigger_hint">%s 出現在您的附近囉！</string>
 </resources>

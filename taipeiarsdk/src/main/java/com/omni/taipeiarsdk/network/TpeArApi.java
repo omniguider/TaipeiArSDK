@@ -3,10 +3,13 @@ package com.omni.taipeiarsdk.network;
 import android.app.Activity;
 import android.content.Context;
 import android.location.Location;
+import android.util.Log;
 
 import com.android.volley.Request;
+import com.omni.taipeiarsdk.model.CommonResponse;
 import com.omni.taipeiarsdk.model.GetWtcFeedback;
 import com.omni.taipeiarsdk.model.UserImageFeedback;
+import com.omni.taipeiarsdk.model.geo_fence.GeoFenceResponse;
 import com.omni.taipeiarsdk.model.mission.MissionCompleteFeedback;
 import com.omni.taipeiarsdk.model.mission.MissionFeedback;
 import com.omni.taipeiarsdk.model.mission.MissionGridFeedback;
@@ -25,6 +28,8 @@ import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import retrofit2.Call;
+import retrofit2.http.Field;
+import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.Part;
@@ -49,6 +54,13 @@ public class TpeArApi {
         Call<UserImageFeedback> uploadUserImage(@Part MultipartBody.Part user_image,
                                                 @Part("timestamp") RequestBody timestamp,
                                                 @Part("mac") RequestBody mac);
+
+        @FormUrlEncoded
+        @POST("api/get_geofence")
+        Call<CommonResponse> getGeoFence(@Field("user_lat") double userLat,
+                                         @Field("user_lng") double userLng,
+                                         @Field("timestamp") String timestamp,
+                                         @Field("mac") String mac);
     }
 
     private TyService getTyService() {
@@ -158,7 +170,7 @@ public class TpeArApi {
     }
 
     public void getMissionReward(Context context, String m_id, String u_id,
-                                 String device_id,NetworkManager.NetworkManagerListener<MissionRewardFeedback> listener) {
+                                 String device_id, NetworkManager.NetworkManagerListener<MissionRewardFeedback> listener) {
 
         String url = NetworkManager.TPE_DOMAIN_NAME + "api/get_mission_reward";
         Map<String, String> params = new HashMap<>();
@@ -167,5 +179,18 @@ public class TpeArApi {
         params.put("device_id", device_id);
 
         NetworkManager.getInstance().addJsonRequest(context, Request.Method.GET, url, params, MissionRewardFeedback.class, TIMEOUT, listener);
+    }
+
+    public void getGeoFenceData(Activity activity, double userLat, double userLng,
+                                NetworkManager.NetworkManagerListener<GeoFenceResponse> listener) {
+
+        long currentTimestamp = System.currentTimeMillis() / 1000L;
+        String mac = NetworkManager.getInstance().getMacStr(currentTimestamp);
+        Call<CommonResponse> call = getTyService().getGeoFence(userLat, userLng,
+                currentTimestamp + "",
+                mac);
+        Log.e("LOG","userLat"+userLat);
+        Log.e("LOG","userLng"+userLng);
+        NetworkManager.getInstance().addPostRequestToCommonObj(activity, call, GeoFenceResponse.class, listener);
     }
 }

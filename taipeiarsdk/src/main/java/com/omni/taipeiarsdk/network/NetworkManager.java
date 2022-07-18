@@ -740,7 +740,7 @@ public class NetworkManager {
                     @Override
                     public void run() {
                         if (response.isSuccessful()) {
-                            Log.e(LOG_TAG, "#11");
+                            Log.e(LOG_TAG, "#1");
                             if (response.body() == null) {
                                 listener.onFail(new VolleyError(activity.getString(R.string.error_dialog_title_text_unknown)), false);
                             } else {
@@ -774,7 +774,6 @@ public class NetworkManager {
                     @Override
                     public void run() {
                         Log.e(LOG_TAG, "localized msg : " + t.getLocalizedMessage() + ", msg : " + t.getMessage() + ", cause : " + t.getCause());
-                        listener.onFail(new VolleyError(activity.getString(R.string.dialog_message_network_connect_not_good)), false);
                         DialogTools.getInstance().dismissProgress(activity);
                     }
                 });

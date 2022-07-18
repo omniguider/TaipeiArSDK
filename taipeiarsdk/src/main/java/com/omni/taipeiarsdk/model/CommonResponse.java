@@ -11,7 +11,7 @@ public class CommonResponse implements Serializable {
     @SerializedName("error_message")
     private String errorMessage;
     @SerializedName("data")
-    private Object[] data;
+    private Object data;
 
     public String getResult() {
         return result;
@@ -29,11 +29,11 @@ public class CommonResponse implements Serializable {
         this.errorMessage = errorMessage;
     }
 
-    public Object[] getData() {
+    public Object getData() {
         return data;
     }
 
-    public void setData(Object[] data) {
+    public void setData(Object data) {
         this.data = data;
     }
 }

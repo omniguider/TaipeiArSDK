@@ -51,6 +51,7 @@ import android.widget.ToggleButton;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.collection.ArrayMap;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 
@@ -74,8 +75,10 @@ import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.android.gms.maps.model.TileProvider;
 import com.google.android.gms.maps.model.UrlTileProvider;
 import com.google.android.material.button.MaterialButton;
+import com.google.maps.android.SphericalUtil;
 import com.omni.taipeiarsdk.model.ArScanInfo;
 import com.omni.taipeiarsdk.model.OmniEvent;
+import com.omni.taipeiarsdk.model.geo_fence.GeoFenceInfo;
 import com.omni.taipeiarsdk.model.mission.GridData;
 import com.omni.taipeiarsdk.model.mission.MissionCompleteFeedback;
 import com.omni.taipeiarsdk.model.tpe_location.Ar;
@@ -114,11 +117,13 @@ import java.util.Map;
 
 import static com.omni.taipeiarsdk.TaipeiArSDKActivity.arContent;
 import static com.omni.taipeiarsdk.TaipeiArSDKActivity.ar_info_Img;
+import static com.omni.taipeiarsdk.TaipeiArSDKActivity.geofenceList;
 import static com.omni.taipeiarsdk.TaipeiArSDKActivity.indexPoi_id;
 import static com.omni.taipeiarsdk.TaipeiArSDKActivity.isMission;
 import static com.omni.taipeiarsdk.TaipeiArSDKActivity.missionId;
 import static com.omni.taipeiarsdk.TaipeiArSDKActivity.ng_id;
 import static com.omni.taipeiarsdk.TaipeiArSDKActivity.userId;
+import static com.omni.taipeiarsdk.tool.TaipeiArSDKText.LOG_TAG;
 import static com.wikitude.architect.ArchitectView.CaptureScreenCallback.CAPTURE_MODE_CAM_AND_WEBVIEW;
 
 /**
@@ -233,6 +238,8 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
     private IndexPoi indexPoi = null;
     private boolean inTriggerRange = false;
     private boolean isTriggerAR = false;
+    private ArrayList<Integer> geofenceArTrigger = new ArrayList<>();
+    private boolean isThemeOrMission = true;
     private SeekBar mSeekBar;
     private TextView range_tv;
     private double range = 2000;
@@ -282,6 +289,11 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
 
                     architectView.callJavascript("World.updateDistanceToUserValues()");
                 }
+                if (!isThemeOrMission) {
+                    LatLng userPos = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+                    detectGeoFenceTrigger(userPos);
+                }
+
                 break;
             case OmniEvent.TYPE_FLOOR_PLAN_CHANGED:
                 String floorPlanId = event.getContent();
@@ -379,6 +391,7 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
                             updatePOIMarkers(2000);
                             fetchFloorPlan("5c22e6b6-4415-422c-a62a-3c119dcf7aad", true, "1");
                             architectView.callJavascript("World.refreshMarkerView(" + 2000 + ")");
+                            isThemeOrMission = false;
                         }
                     }
 
@@ -645,6 +658,11 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
             Log.e("LOG", "mGridData" + mGridData.length);
         }
 
+        if (getIntent().hasExtra(INTENT_EXTRAS_KEY_THEME_DATA) ||
+                getIntent().hasExtra(INTENT_EXTRAS_KEY_MISSION_DATA)) {
+            isThemeOrMission = true;
+        }
+
         /*
          * The ArchitectStartupConfiguration is required to call architectView.onCreate.
          * It controls the startup of the ArchitectView which includes camera settings,
@@ -857,16 +875,10 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
             }
         });
 
-        if (TaipeiArSDKActivity.active_method != null &&
-                TaipeiArSDKActivity.active_method.equals("1")) {
-//            showArModel(TaipeiArSDKActivity.arContent);
-        }
-
         if (intent.hasExtra(INTENT_EXTRAS_KEY_MISSION_DATA)) {
             showPOIInfo(indexPoi_id);
         }
 //        architectView.callJavascript("World.createPositionable3D('" + 0.0 + "'," + 0.4 + "');");
-
     }
 
     @Override
@@ -1416,6 +1428,35 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
         }
     }
 
+    private void detectGeoFenceAr(GeoFenceInfo g) {
+        double distance = getDistance(
+                mLastLocation.getLatitude(),
+                mLastLocation.getLongitude(),
+                g.getLat(),
+                g.getLng());
+        double deltaX = (g.getLat() - mLastLocation.getLatitude());
+        double deltaY = (g.getLng() - mLastLocation.getLongitude());
+        double degree = findDegree((float) deltaX, (float) deltaY);
+
+        Log.e(TAG, "detectGeoFenceAr distance" + distance + " title" + g.getTitle());
+
+        if (distance <= Integer.parseInt(g.getAr_trigger().getDistance())) {
+            showHintMessage(getString(R.string.find),
+                    String.format(getString(R.string.geofence_ar_trigger_hint), g.getTitle()));
+            geofenceArTrigger.add(g.getId());
+            if (g.getAr().getContent_type().equals("3d_model")) {
+                architectView.callJavascript("World.createModelAtLocation(" +
+                        g.getLat() + "," + g.getLng() +
+                        "," + g.getAr().getSize() + "," +
+                        g.getAr().getHeigh() + "," + degree + ",'" +
+                        g.getAr().getContent() + "')");
+            } else if (g.getAr().getContent_type().equals("image")) {
+                architectView.callJavascript("World.createImageAtLocation(" +
+                        g.getLat() + "," + g.getLng() + ",'" + g.getAr().getContent() + "')");
+            }
+        }
+    }
+
     private void showARModelMissionComplete() {
         double distance = getDistance(
                 mLastLocation.getLatitude(),
@@ -1921,5 +1962,17 @@ public class SimpleArActivity extends AppCompatActivity implements OnMapReadyCal
 
     private boolean checkTileExists(int x, int y, int zoom) {
         return zoom >= TaipeiArSDKText.MAP_MIN_ZOOM_LEVEL && zoom <= TaipeiArSDKText.MAP_MAX_ZOOM_LEVEL;
+    }
+
+    private void detectGeoFenceTrigger(LatLng userPos) {
+        Log.e(LOG_TAG, "detectGeoFenceTrigger userPos:" + userPos + " geofenceList:" + geofenceList.size());
+        synchronized (this) {
+            for (GeoFenceInfo g : geofenceList) {
+                double dis = SphericalUtil.computeDistanceBetween(userPos, g.getPosition());
+                if (dis < g.getRange() && !geofenceArTrigger.contains(g.getId())) {
+                    detectGeoFenceAr(g);
+                }
+            }
+        }
     }
 }

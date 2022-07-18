@@ -16,6 +16,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
+import androidx.collection.ArrayMap
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import com.google.android.gms.common.ConnectionResult
@@ -24,9 +25,13 @@ import com.google.android.gms.location.LocationListener
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.places.Places
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.SphericalUtil
 import com.indooratlas.android.sdk.*
 import com.omni.taipeiarsdk.manager.AnimationFragmentManager
+import com.omni.taipeiarsdk.manager.GeoFenceManager
 import com.omni.taipeiarsdk.model.OmniEvent
+import com.omni.taipeiarsdk.model.geo_fence.GeoFenceInfo
 import com.omni.taipeiarsdk.model.mission.MissionGridData
 import com.omni.taipeiarsdk.model.tpe_location.Ar
 import com.omni.taipeiarsdk.model.tpe_location.IndexPoi
@@ -68,6 +73,7 @@ class TaipeiArSDKActivity : AppCompatActivity(), IARegion.Listener, IALocationLi
         lateinit var ng_id: String
         lateinit var indexPoi_id: String
         lateinit var ng_title: String
+        lateinit var geofenceList: ArrayList<GeoFenceInfo>
     }
 
     private val ARG_KEY_USERID = "arg_key_userid"
@@ -151,6 +157,7 @@ class TaipeiArSDKActivity : AppCompatActivity(), IARegion.Listener, IALocationLi
         ar_open_by_poi = "false"
         filterKeyword = ArrayList()
         filterKeywordCopy = ArrayList()
+        geofenceList = ArrayList()
 
         val json: String = SampleJsonParser.loadStringFromAssets(
             this,
@@ -478,6 +485,11 @@ class TaipeiArSDKActivity : AppCompatActivity(), IARegion.Listener, IALocationLi
         if (!mIsIndoor) {
             mLastLocation = location
             EventBus.getDefault().post(OmniEvent(OmniEvent.TYPE_USER_AR_LOCATION, location))
+        }
+
+        if (geofenceList.isEmpty()) {
+            GeoFenceManager.getInstance()
+                .getGeoFenceData(this@TaipeiArSDKActivity, mLastLocation)
         }
     }
 

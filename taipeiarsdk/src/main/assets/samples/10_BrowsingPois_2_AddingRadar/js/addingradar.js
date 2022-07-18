@@ -302,8 +302,8 @@ var World = {
 	},
 
 	createModelAtLocation: function createModelAtLocationFn(lat, lng, size, altitude, rotateY, url) {
-        console.info('createModelAtLocation'+size);
-        console.info('createModelAtLocation' + altitude);
+        console.info('createModelAtLocation size' + size);
+        console.info('createModelAtLocation altitude' + altitude);
         var location = new AR.GeoLocation(lat, lng, parseFloat(altitude - 15));
 
         if(World.image){
